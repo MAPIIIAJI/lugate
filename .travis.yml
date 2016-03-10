@@ -1,0 +1,11 @@
+language c
+
+env:
+  - LUA="luajit"
+
+install:
+  - sudo apt-get -y update
+  - sudo apt-get -y install luajit luarocks libssl1.0.0
+  - sudo luarocks install busted
+
+script: busted test/luagate_test.lua
