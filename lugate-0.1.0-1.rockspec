@@ -20,6 +20,6 @@ build = {
     type = "builtin",
     modules = {
         lugate = "src/lugate.lua"
-    }
+    },
+    copy_directories = { "test" }
 }
-copy_directories = { "test" }
