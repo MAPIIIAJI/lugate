@@ -28,13 +28,17 @@ end
 
 -- Check if request is a batch
 function Lugate:is_batch()
-    -- todo
+    return (self.data[1] ~= nil)
+            and self:is_valid(self.data[1])
 end
 
 -- Check if single request is valid
-function Lugate:is_valid()    -- todo
-
-    -- todo
+function Lugate:is_valid(data)
+    return (type(data) == 'table')
+            and (data.jsonrpc ~= nil)
+            and (data.method ~= nil)
+            and (data.params ~= nil)
+            and (data.id ~= nil)
 end
 
 return Lugate

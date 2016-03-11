@@ -13,7 +13,7 @@ description = {
     license = "MIT"
 }
 dependencies = {
-    "lua ~> 5.3",
+    "lua ~> 5.1",
     "rapidjson ~> 0.4"
 }
 build = {
