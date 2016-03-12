@@ -22,48 +22,52 @@ local Lugate = {
 function Lugate:new(body, routes)
   local lugate = setmetatable({}, Lugate)
   self.__index = self
-  self.body = body
-  self.routes = routes or {}
+
+  lugate.body = body
+  lugate.routes = routes or {}
+  lugate.this = lugate
 
   return lugate
 end
 
---- Get the collection of requests
--- @return[type=table] The
-function Lugate:get_request()
-  if not self.request then
-    self.request = {}
-    self.data = json.decode(self.body)
-    if self.data then
-        print(self.data)
+--- Parse raw body
+-- @return[type=table]
+function Lugate:get_data()
+  if not self.this.data then
+    self.this.data = json.decode(self.this.body)
+  end
+
+  return self.this.data
+end
+
+--- Get request collection
+-- @return[type=table] The table of requests
+function Lugate:get_requests()
+  if not self.this.requests then
+    self.this.requests = {}
+    local data = self.this:get_data()
+    if self:is_batch(data) then
+      self.this.requests = data
+    elseif self:is_valid(data) then
+      self.this.requests = {data}
     end
   end
 
-  return self.request
+  return self.this.requests
 end
 
----- Get table data
---function Lugate:get_data()
---  if self.data == nil then
---    self.data = json.decode(self.raw_body)
---  end
---
---  return self.data
---end
---
----- Check if request is a batch
---function Lugate:is_batch()
---  return (self.data[1] ~= nil)
---    and self:is_valid(self.data[1])
---end
---
----- Check if single request is valid
---function Lugate:is_valid(data)
---  return (type(data) == 'table')
---    and (data.jsonrpc ~= nil)
---    and (data.method ~= nil)
---    and (data.params ~= nil)
---    and (data.id ~= nil)
---end
+--- Check if request is a batch
+-- @param[type=table] data Decoded request body
+-- @return[type=boolean]
+function Lugate:is_batch(data)
+  return data and data[1] and ('table' == type(data[1]))
+end
+
+--- Check if single request is valid
+-- @param[type=table] data Decoded request body
+-- @return[type=boolean]
+function Lugate:is_valid(data)
+  return data and data['jsonrpc'] and data['method'] and data['params'] and data['id'] and true or false
+end
 
 return Lugate
