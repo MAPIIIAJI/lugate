@@ -3,7 +3,24 @@ Lugate is a lua module for building JSON-RPC 2.0 Gateway APIs just inside of you
 
 [![Build Status](https://travis-ci.org/zinovyev/lugate.svg?branch=master)](https://travis-ci.org/zinovyev/lugate)
 
-# Example
+## About
+Lugate is a helper set which is meant to be used together with [ngx\_http\_lua\_module](https://github.com/openresty/lua-nginx-module) module.
+It provides you several special methods for validating a JSON-RPC 2.0 request, looping a batch call and building a
+valid response.
+
+## Lugate proxy call
+Lugate brings its own protocol to live for transferring some additional logic over JSON-RPC 2.0 request. It adds
+capabilities for routing and caching.
+The *params* member of the request object gets some additional mandatory members:
+
+* **route** - fo the routing note
+* **cache** - for the caching lifetime
+* **params** - the regular array of parameter values
+
+After the request is processed by the Lugate module, the **route** and **cache** values are removed from the
+*params* member and the **params** value is expanded on the full *params* field.
+
+## Example
 ```lua
 -- Get request body
 body = ngx.req.get_body_data()
