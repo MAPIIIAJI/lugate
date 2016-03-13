@@ -9,18 +9,22 @@ It provides you several special methods for validating a JSON-RPC 2.0 request, l
 valid response.
 
 ## Lugate proxy call
-Lugate brings its own protocol to live for transferring some additional logic over JSON-RPC 2.0 request. It adds
-capabilities for routing and caching.
-The *params* member of the request object gets some additional mandatory members:
+Lugate brings its own protocol for transferring some additional logic over JSON-RPC 2.0 request to live. It adds
+some additional capabilities for routing and caching.
+The *params* member of the [request object](http://www.jsonrpc.org/specification#request_object) gets some additional mandatory members:
 
 * **route** - fo the routing note
 * **cache** - for the caching lifetime
 * **params** - the regular array of parameter values
 
 After the request is processed by the Lugate module, the **route** and **cache** values are removed from the
-*params* member and the **params** value is expanded on the full *params* field.
+*params* member and the **params** value is expanded to fill the whole *params* field.
 
-## Example
+## Testing
+The framework used for testing is called `busted` and is easily installed through the `luarocks` manager. After installing it
+just run the command `busted test/luagate_test.lua` from inside of the projects root directory.
+
+## Example of usage
 ```lua
 -- Get request body
 body = ngx.req.get_body_data()
