@@ -59,7 +59,6 @@ describe("Check request validator", function()
       body = '{"jsonrpc":"2.0","method":"service01.say","params":{"cache":3600,"route":"v1.service01","params":{"foo":"bar"}},"id":1}'
     })
     local res1 = lu1:is_proxy_call(lu1:get_data())
-
     assert.is_true(res1)
   end)
 end)
