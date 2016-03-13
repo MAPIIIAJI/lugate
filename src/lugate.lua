@@ -77,7 +77,7 @@ end
 -- @param[type=table] data Decoded request body
 -- @return[type=boolean]
 function Lugate:is_proxy_call(data)
-  return self:is_valid(data) and data.params['route'] and data.params['params'] and data.params['cache']
+  return self:is_valid(data) and data.params['route'] and data.params['params'] and data.params['cache'] and true
 end
 
 return Lugate

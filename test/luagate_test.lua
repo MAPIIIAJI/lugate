@@ -53,6 +53,15 @@ describe("Check request validator", function()
     local res2 = lu2:is_valid(lu2:get_data())
     assert.is_false(res2)
   end)
+
+  it("Valid single request with additional logic should be valid and parsed like proxy call", function()
+    local lu1 = Lugate:new({
+      body = '{"jsonrpc":"2.0","method":"service01.say","params":{"cache":3600,"route":"v1.service01","params":{"foo":"bar"}},"id":1}'
+    })
+    local res1 = lu1:is_proxy_call(lu1:get_data())
+
+    assert.is_true(res1)
+  end)
 end)
 
 
