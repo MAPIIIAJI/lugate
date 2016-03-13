@@ -26,7 +26,7 @@ describe("Check Lugate request parser", function()
 
   it("Batch request should also be packed into array", function()
     local lu1 = Lugate:new({
-      body = '[{"jsonrpc":"2.0","method":"service01.say","params":{"foo":"bar"},"id":1}'
+      body = '[{"jsonrpc":"2.0","method":"service01.say","params":{"foo":"bar"},"id":1},'
       .. '{"jsonrpc":"2.0","method":"service02.say","params":{"foo":"bar"},"id":2}]'
     })
     local requests = lu1:get_requests()
