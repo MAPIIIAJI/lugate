@@ -73,4 +73,11 @@ function Lugate:is_valid(data)
   return data and data['jsonrpc'] and data['method'] and data['params'] and data['id'] and true or false
 end
 
+--- Is a valid proxy call over JSON-RPC 2.0
+-- @param[type=table] data Decoded request body
+-- @return[type=boolean]
+function Lugate:is_proxy_call(data)
+  return self:is_valid(data) and data.params['route'] and data.params['params'] and data.params['cache']
+end
+
 return Lugate
