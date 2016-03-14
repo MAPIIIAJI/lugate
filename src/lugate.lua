@@ -93,4 +93,26 @@ function Lugate:get_route(data)
   return false
 end
 
+--- Normalize data params
+function Lugate:normalize_params(data)
+  local norm_data = data
+  norm_data.params = data.params.params
+
+  return norm_data
+end
+
+--- Build a request in format acceptable by nginx
+-- @param[type=table] data Decoded requets body
+-- @return table
+function Lugate:ngx_request(data)
+  if self:is_proxy_call() then
+    return false
+  end
+
+  local route = self:get_route(data)
+  local body = json.encode(self:normalize_params(data))
+
+  return { route, { method = ngx.HTTP_POST, body = body } }
+end
+
 return Lugate

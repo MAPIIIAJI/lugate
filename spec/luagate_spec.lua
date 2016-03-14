@@ -78,5 +78,20 @@ describe("Check request router", function()
   end)
 end)
 
+describe("Check params normalization", function()
+  it("Request should exist and be normalized after normalization", function ()
+    local lu1 = Lugate:new({
+      body = '{"jsonrpc":"2.0","method":"service01.say","params":{"cache":3600,"route":"v1.service01.say","params":{"foo":"bar"}},"id":1}',
+      routes = {
+        ["^v2%.service01%s.say"]     = '/v2/service01.loc',
+        ["^v2%.service02%s.watch"]   = '/v2/service01.loc',
+        ["^v1%..+"]                  = '/v1/json',
+      }
+    })
+    req = lu1:normalize_params(lu1:get_data())
+    assert.equals(req.params.foo, 'bar')
+  end)
+end)
+
 describe("Check Lugate response builder", function()
 end)
