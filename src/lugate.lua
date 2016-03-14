@@ -80,6 +80,7 @@ end
 
 --- Get route for request data
 -- @param[type=table] data Decoded requets body
+-- @return string
 function Lugate:get_route(data)
   if self:is_proxy_call(data) then
     for route, uri in pairs(self.routes) do
