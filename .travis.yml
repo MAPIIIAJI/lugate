@@ -1,9 +1,0 @@
-language: lua
-
-install:
-  - sudo apt-get -y update
-  - sudo apt-get -y install luajit luarocks libssl1.0.0
-  - sudo luarocks install busted
-  - sudo luarocks make
-
-script: busted
