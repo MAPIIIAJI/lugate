@@ -105,14 +105,28 @@ end
 -- @param[type=table] data Decoded requets body
 -- @return table
 function Lugate:ngx_request(data)
-  if self:is_proxy_call() then
+  if not self:is_proxy_call() then
     return false
   end
 
   local route = self:get_route(data)
   local body = json.encode(self:normalize_params(data))
 
-  return { route, { method = ngx.HTTP_POST, body = body } }
+  return { route, { method = 'POST', body = body } }
+end
+
+--- Build all requests in format acceptable by nginx
+-- @param[type=table] data Decoded requets body
+-- @return table
+function Lugate:ngx_requests(data)
+  requests = {}
+  for _, req in ipairs(data) do
+    if self:is_proxy_call() then
+      table.insert(requests, self:ngx_request(req))
+    end
+  end
+
+  return requests
 end
 
 return Lugate
