@@ -27,7 +27,7 @@ describe("Check Lugate request parser", function()
   it("Batch request should also be packed into array", function()
     local lu1 = Lugate:new({
       body = '[{"jsonrpc":"2.0","method":"service01.say","params":{"foo":"bar"},"id":1},'
-      .. '{"jsonrpc":"2.0","method":"service02.say","params":{"foo":"bar"},"id":2}]'
+        .. '{"jsonrpc":"2.0","method":"service02.say","params":{"foo":"bar"},"id":2}]'
     })
     local requests = lu1:get_requests()
     assert(requests[1]["method"])
@@ -63,6 +63,20 @@ describe("Check request validator", function()
   end)
 end)
 
+describe("Check request router", function()
+  it("Bind a route if possible", function()
+    local lu1 = Lugate:new({
+      body = '{"jsonrpc":"2.0","method":"service01.say","params":{"cache":3600,"route":"v1.service01.say","params":{"foo":"bar"}},"id":1}',
+      routes = {
+        ["^v2%.service01%s.say"]     = '/v2/service01.loc',
+        ["^v2%.service02%s.watch"]   = '/v2/service01.loc',
+        ["^v1%..+"]                  = '/v1/json',
+      }
+    })
+    local route = lu1:get_route(lu1:get_data())
+    assert.equals(route, '/v1/json')
+  end)
+end)
 
 describe("Check Lugate response builder", function()
 end)

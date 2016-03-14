@@ -21,5 +21,5 @@ build = {
     modules = {
         lugate = "src/lugate.lua"
     },
-    copy_directories = { "test" }
+    copy_directories = { "spec" }
 }

@@ -6,4 +6,4 @@ install:
   - sudo luarocks install busted
   - sudo luarocks make
 
-script: busted test/luagate_test.lua
+script: busted
