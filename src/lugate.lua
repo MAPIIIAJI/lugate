@@ -10,6 +10,9 @@
 -- Json encoder/decoder
 local json = require "rapidjson"
 
+-- Request obeject
+local Request = require "request"
+
 --- The lua gateway class definition
 local Lugate = {}
 

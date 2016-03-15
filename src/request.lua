@@ -11,7 +11,7 @@ local Request = {}
 
 --- Create new request
 -- return
-function Request:new()
+function Request:new(data)
   local request = setmetatable({}, Request)
   self.__index = self
 
