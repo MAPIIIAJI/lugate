@@ -18,9 +18,10 @@ dependencies = {
   "rapidjson ~> 0.4"
 }
 build = {
-  type = "builtin",
-  modules = {
-    lugate = "src/lugate.lua",
-    ["lugate.request"] = "src/lugate/request.lua"
-  },
+  
+--  type = "builtin",
+--  modules = {
+--    lugate = "src/lugate.lua",
+--    ["lugate.request"] = "src/lugate/request.lua"
+--  },
 }
