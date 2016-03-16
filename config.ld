@@ -1,3 +1,4 @@
-file = "src/lugate.lua"
+file = "src"
+dir = "doc"
 title = "Lugate module"
 description = "Lugate module for nginx"

@@ -3,7 +3,7 @@
 -- Lugate is a lua module for building JSON-RPC 2.0 Gateway APIs just inside of your Nginx configuration file.
 -- Lugate is meant to be used with [ngx\_http\_lua\_module](https://github.com/openresty/lua-nginx-module) together.
 --
--- @module lugate
+-- @classmod lugate
 -- @author Ivan Zinovyev <vanyazin@gmail.com>
 -- @license MIT
 
@@ -51,9 +51,14 @@ function Lugate:get_requests()
     self.requests = {}
     local data = self:get_data()
     if self:is_batch(data) then
-      self.requests = data
-    elseif self:is_valid(data) then
-      self.requests = {data}
+      for _, rdata in ipairs(data) do
+        table.insert(self.requests, Request:new(rdata))
+      end
+    else
+      local request = Request:new(data)
+      if request.is_valid then
+        table.insert(self.requests, request)
+      end
     end
   end
 
@@ -65,20 +70,6 @@ end
 -- @return[type=boolean]
 function Lugate:is_batch(data)
   return data and data[1] and ('table' == type(data[1]))
-end
-
---- Check if single request is valid
--- @param[type=table] data Decoded request body
--- @return[type=boolean]
-function Lugate:is_valid(data)
-  return data and data['jsonrpc'] and data['method'] and data['params'] and data['id'] and true or false
-end
-
---- Is a valid proxy call over JSON-RPC 2.0
--- @param[type=table] data Decoded request body
--- @return[type=boolean]
-function Lugate:is_proxy_call(data)
-  return self:is_valid(data) and data.params['route'] and data.params['params'] and data.params['cache'] and true or false
 end
 
 --- Get route for request data
@@ -122,7 +113,7 @@ end
 -- @param[type=table] data Decoded requets body
 -- @return table
 function Lugate:ngx_requests(data)
-  requests = {}
+  local requests = {}
   for _, req in ipairs(data) do
     if self:is_proxy_call() then
       table.insert(requests, self:ngx_request(req))
