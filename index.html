@@ -27,249 +27,38 @@
 <h1>ldoc</h1>
 
 
-<h2>Contents</h2>
-<ul>
-<li><a href="#Functions">Functions</a></li>
-</ul>
 
 
-<h2>Modules</h2>
+<h2>Classes</h2>
 <ul class="$(kind=='Topics' and '' or 'nowrap'">
-  <li><strong>lugate</strong></li>
+  <li><a href="classes/lugate.html">lugate</a></li>
+  <li><a href="classes/request.html">request</a></li>
 </ul>
 
 </div>
 
 <div id="content">
 
-<h1>Module <code>lugate</code></h1>
-<p>The lugate module.</p>
-<p>
- Lugate is a lua module for building JSON-RPC 2.0 Gateway APIs just inside of your Nginx configuration file.
- Lugate is meant to be used with [ngx\_http\_lua\_module](https://github.com/openresty/lua-nginx-module) together.</p>
-    <h3>Info:</h3>
-    <ul>
-        <li><strong>License</strong>: MIT</li>
-        <li><strong>Author</strong>: Ivan Zinovyev <vanyazin@gmail.com></li>
-    </ul>
 
+  <h2>Lugate module for nginx</h2>
 
-<h2><a href="#Functions">Functions</a></h2>
-<table class="function_list">
+<h2>Classes</h2>
+<table class="module_list">
 	<tr>
-	<td class="name" nowrap><a href="#Lugate:new">Lugate:new (config)</a></td>
-	<td class="summary">Create new Lugate instance</td>
+		<td class="name"  nowrap><a href="classes/lugate.html">lugate</a></td>
+		<td class="summary">The lugate module.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Lugate:configure">Lugate:configure (config)</a></td>
-	<td class="summary">Configure lugate instance</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Lugate:get_data">Lugate:get_data ()</a></td>
-	<td class="summary">Parse raw body</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Lugate:get_requests">Lugate:get_requests ()</a></td>
-	<td class="summary">Get request collection</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Lugate:is_batch">Lugate:is_batch (data)</a></td>
-	<td class="summary">Check if request is a batch</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Lugate:is_valid">Lugate:is_valid (data)</a></td>
-	<td class="summary">Check if single request is valid</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Lugate:is_proxy_call">Lugate:is_proxy_call (data)</a></td>
-	<td class="summary">Is a valid proxy call over JSON-RPC 2.0</td>
+		<td class="name"  nowrap><a href="classes/request.html">request</a></td>
+		<td class="summary">The lugate module.</td>
 	</tr>
 </table>
-
-<br/>
-<br/>
-
-
-    <h2 class="section-header "><a name="Functions"></a>Functions</h2>
-
-    <dl class="function">
-    <dt>
-    <a name = "Lugate:new"></a>
-    <strong>Lugate:new (config)</strong>
-    </dt>
-    <dd>
-    Create new Lugate instance
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">config</span>
-            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-         Table of configuration options: body for raw request body and routes for routing map config
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><span class="type">Lugate</span></span>
-        The new instance of Lugate
-    </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "Lugate:configure"></a>
-    <strong>Lugate:configure (config)</strong>
-    </dt>
-    <dd>
-    Configure lugate instance
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">config</span>
-            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-         Table of configuration options
-        </li>
-    </ul>
-
-
-
-
-
-</dd>
-    <dt>
-    <a name = "Lugate:get_data"></a>
-    <strong>Lugate:get_data ()</strong>
-    </dt>
-    <dd>
-    Parse raw body
-
-
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-
-    </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "Lugate:get_requests"></a>
-    <strong>Lugate:get_requests ()</strong>
-    </dt>
-    <dd>
-    Get request collection
-
-
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-        The table of requests
-    </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "Lugate:is_batch"></a>
-    <strong>Lugate:is_batch (data)</strong>
-    </dt>
-    <dd>
-    Check if request is a batch
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">data</span>
-            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-         Decoded request body
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><span class="type">boolean</span></span>
-
-    </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "Lugate:is_valid"></a>
-    <strong>Lugate:is_valid (data)</strong>
-    </dt>
-    <dd>
-    Check if single request is valid
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">data</span>
-            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-         Decoded request body
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><span class="type">boolean</span></span>
-
-    </ol>
-
-
-
-
-</dd>
-    <dt>
-    <a name = "Lugate:is_proxy_call"></a>
-    <strong>Lugate:is_proxy_call (data)</strong>
-    </dt>
-    <dd>
-    Is a valid proxy call over JSON-RPC 2.0
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">data</span>
-            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-         Decoded request body
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><span class="type">boolean</span></span>
-
-    </ol>
-
-
-
-
-</dd>
-</dl>
-
 
 </div> <!-- id="content" -->
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.3</a></i>
-<i style="float:right;">Last updated 2016-03-13 22:19:56 </i>
+<i style="float:right;">Last updated 2016-03-16 17:05:11 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>
