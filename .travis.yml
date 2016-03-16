@@ -2,7 +2,8 @@ language: lua
 
 install:
   - sudo apt-get -y update
-  - sudo apt-get -y install luajit luarocks libssl1.0.0
+  - sudo apt-get -y install lua luajit luarocks libssl1.0.0
+  - sudo luarocks install luasec
   - sudo luarocks install busted
   - sudo luarocks make
 

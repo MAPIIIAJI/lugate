@@ -1,7 +1,8 @@
 package = "lugate"
 version = "0.1.1-1"
 source = {
-  url = "https://github.com/zinovyev/lugate"
+  url = "git@github.com:zinovyev/lugate.git",
+  tag = "0.1.1"
 }
 description = {
   summary = "Lua module for building JSON-RPC 2.0 Gateway APIs just inside of your Nginx",
@@ -20,6 +21,6 @@ build = {
   type = "builtin",
   modules = {
     lugate = "src/lugate.lua",
-    ["lugate.request"] = "src/lugate.lua"
+    ["lugate.request"] = "src/lugate/request.lua"
   },
 }
