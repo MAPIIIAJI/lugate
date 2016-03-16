@@ -96,13 +96,33 @@ end)
 describe("Check how requests are parsed to objects", function ()
   it("Requests should be parsed to array from the batch request", function()
     local lu1 = Lugate:new({
-      body = '[{"jsonrpc":"2.0","method":"service01.say","params":{"cache":3600,"route":"v1.service01.say","params":{"foo":"bar"}},"id":1},{"jsonrpc":"2.0","method":"service01.say","params":{"cache":3600,"route":"v1.service01.say","params":{"foo":"bar"}},"id":1}]',
+      body = '[{"jsonrpc":"2.0","method":"service01.say","params":{"cache":3600,"route":"v1.service01.say","params":{"foo":"bar"}},"id":1},'
+      ..'{"jsonrpc":"2.0","method":"service01.say","params":{"cache":3600,"route":"v1.service01.say","params":{"foo":"bar"}},"id":1}]',
       routes = {}
     })
     local req = lu1:get_requests(lu1:get_data())
-    assert.equals(type(req), 'table')
-
+    assert.is_table(req)
+    assert.is_table(req[1])
+    assert.is_table(req[2])
+    assert.is_equal('service01.say', req[1]:get_method())
+    assert.is_equal('service01.say', req[2]:get_method())
   end)
 --  local req = lu1:create_request(lu1:get_data())
 --  print(req.id)
 end)
+
+describe("Check how a single request is parsed to object", function ()
+  it("Request should be parsed to array from the single request", function()
+    local lu1 = Lugate:new({
+      body = '{"jsonrpc":"2.0","method":"service01.say","params":{"cache":3600,"route":"v1.service01.say","params":{"foo":"bar"}},"id":1}',
+      routes = {}
+    })
+    local req = lu1:get_requests(lu1:get_data())
+    assert.is_table(req)
+    assert.is_table(req[1])
+    assert.is_equal('service01.say', req[1]:get_method())
+  end)
+  --  local req = lu1:create_request(lu1:get_data())
+  --  print(req.id)
+end)
+
