@@ -52,10 +52,10 @@ function Lugate:get_requests()
     local data = self:get_data()
     if self:is_batch(data) then
       for _, rdata in ipairs(data) do
-        table.insert(self.requests, Request:new(rdata))
+        table.insert(self.requests, Request:new(rdata, self.routes))
       end
     else
-      local request = Request:new(data)
+      local request = Request:new(data, self.routes)
       if request.is_valid then
         table.insert(self.requests, request)
       end
@@ -70,57 +70,6 @@ end
 -- @return[type=boolean]
 function Lugate:is_batch(data)
   return data and data[1] and ('table' == type(data[1]))
-end
-
---- Get route for request data
--- @param[type=table] data Decoded requets body
--- @return string
-function Lugate:get_route(data)
-  if self:is_proxy_call(data) then
-    for route, uri in pairs(self.routes) do
-      if data.params.route == string.match(data.params.route, route) then
-        return uri
-      end
-    end
-  end
-
-  return false
-end
-
---- Normalize data params
-function Lugate:normalize_params(data)
-  local norm_data = data
-  norm_data.params = data.params.params
-
-  return norm_data
-end
-
---- Build a request in format acceptable by nginx
--- @param[type=table] data Decoded requets body
--- @return table
-function Lugate:ngx_request(data)
-  if not self:is_proxy_call() then
-    return false
-  end
-
-  local route = self:get_route(data)
-  local body = json.encode(self:normalize_params(data))
-
-  return { route, { method = 'POST', body = body } }
-end
-
---- Build all requests in format acceptable by nginx
--- @param[type=table] data Decoded requets body
--- @return table
-function Lugate:ngx_requests(data)
-  local requests = {}
-  for _, req in ipairs(data) do
-    if self:is_proxy_call() then
-      table.insert(requests, self:ngx_request(req))
-    end
-  end
-
-  return requests
 end
 
 return Lugate

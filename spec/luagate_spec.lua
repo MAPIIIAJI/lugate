@@ -79,18 +79,18 @@ describe("Check request router", function()
 end)
 
 describe("Check params normalization", function()
-  it("Request should exist and be normalized after normalization", function()
-    local lu1 = Lugate:new({
-      body = '{"jsonrpc":"2.0","method":"service01.say","params":{"cache":3600,"route":"v1.service01.say","params":{"foo":"bar"}},"id":1}',
-      routes = {
-        ["^v2%.service01%s.say"]     = '/v2/service01.loc',
-        ["^v2%.service02%s.watch"]   = '/v2/service01.loc',
-        ["^v1%..+"]                  = '/v1/json',
-      }
-    })
-    local req = lu1:normalize_params(lu1:get_data())
-    assert.equals(req.params.foo, 'bar')
-  end)
+--  it("Request should exist and be normalized after normalization", function()
+--    local lu1 = Lugate:new({
+--      body = '{"jsonrpc":"2.0","method":"service01.say","params":{"cache":3600,"route":"v1.service01.say","params":{"foo":"bar"}},"id":1}',
+--      routes = {
+--        ["^v2%.service01%s.say"]     = '/v2/service01.loc',
+--        ["^v2%.service02%s.watch"]   = '/v2/service01.loc',
+--        ["^v1%..+"]                  = '/v1/json',
+--      }
+--    })
+--    local req = lu1:normalize_params(lu1:get_data())
+--    assert.equals(req.params.foo, 'bar')
+--  end)
 end)
 
 describe("Check how requests are parsed to objects", function ()
@@ -115,7 +115,9 @@ describe("Check how a single request is parsed to object", function ()
   it("Request should be parsed to array from the single request", function()
     local lu1 = Lugate:new({
       body = '{"jsonrpc":"2.0","method":"service01.say","params":{"cache":3600,"route":"v1.service01.say","params":{"foo":"bar"}},"id":1}',
-      routes = {}
+      routes = {
+        ['^v1%..+'] = '/v1'
+      }
     })
     local req = lu1:get_requests(lu1:get_data())
     assert.is_table(req)
@@ -123,6 +125,9 @@ describe("Check how a single request is parsed to object", function ()
     assert.is_equal('2.0', req[1]:get_jsonrpc())
     assert.is_equal('service01.say', req[1]:get_method())
     assert.are.same({foo = "bar"}, req[1]:get_params())
+    assert.are.same(3600, req[1]:get_cache())
+    assert.are.same('v1.service01.say', req[1]:get_route())
+    assert.are.same('/v1', req[1]:get_uri())
     assert.is_equal(1, req[1]:get_id())
   end)
 end)

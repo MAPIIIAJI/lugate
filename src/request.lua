@@ -15,12 +15,19 @@ local Request = {}
 
 --- Create new request
 -- return[type=table] New request instance
-function Request:new(data)
+function Request:new(data, routes)
   local request = setmetatable({}, Request)
   self.__index = self
-  request.data = data
+  request:configure(data, routes)
 
   return request
+end
+
+--- Configure lugate instance
+-- @param[type=table] config Table of configuration options
+function Request:configure(data, routes)
+  self.data = data
+  self.routes = routes or {}
 end
 
 --- Check if request is valid JSON-RPC 2.0
@@ -89,10 +96,31 @@ function Request:get_data()
   }
 end
 
+--- Get which uri is passing for request data
+-- @return[type=string]
+function Request:get_uri()
+  if self:is_proxy_call() then
+    for route, uri in pairs(self.routes) do
+      if self:get_route() == string.match(self:get_route(), route) then
+        return uri
+      end
+    end
+  end
+
+  return false
+end
+
 --- Get request body
 -- @return[type=string] Json array
 function Request:get_body()
   return json.encode(Request:get_data())
+end
+
+--- Build a request in format acceptable by nginx
+-- @param[type=table] data Decoded requets body
+-- @return table
+function Request:get_ngx_request()
+  return { self:get_route(), { method = 'POST', body = self:get_body() } }
 end
 
 return Request
