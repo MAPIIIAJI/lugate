@@ -57,7 +57,7 @@ end
 --- Get request params
 -- @retur[type=table]
 function Request:get_params()
-  return self.is_proxy_call() and self.params.params or self.params
+  return self:is_proxy_call() and self.data.params.params or self.data.params
 end
 
 --- Get request id
@@ -69,13 +69,13 @@ end
 --- Get request route
 -- @return[type=string]
 function Request:get_route()
-  return self:is_proxy_call() and self.params.route or nil
+  return self:is_proxy_call() and self.data.params.route or nil
 end
 
 --- Get request cache param
 -- @return[type=string]
 function Request:get_cache()
-  return self:is_proxy_call() and self.params.cache or false
+  return self:is_proxy_call() and self.data.params.cache or false
 end
 
 --- Get request data table
