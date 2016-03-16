@@ -23,8 +23,9 @@ function Request:new(data, routes)
   return request
 end
 
---- Configure lugate instance
--- @param[type=table] config Table of configuration options
+--- Configure request instance
+-- @param[type=table] data Table of request data
+-- @param[type=table] routes Table of routes
 function Request:configure(data, routes)
   self.data = data
   self.routes = routes or {}
@@ -56,19 +57,19 @@ function Request:get_jsonrpc()
 end
 
 --- Get method name
--- @retur[type=string]
+-- @return[type=string]
 function Request:get_method()
   return self.data.method
 end
 
 --- Get request params
--- @retur[type=table]
+-- @return[type=table]
 function Request:get_params()
   return self:is_proxy_call() and self.data.params.params or self.data.params
 end
 
 --- Get request id
--- @retur[type=int]
+-- @return[type=int]
 function Request:get_id()
   return self.data.id
 end

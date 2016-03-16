@@ -11,7 +11,7 @@
 local json = require "rapidjson"
 
 -- Request obeject
-local Request = require "request"
+local Request = require "lugate.request"
 
 --- The lua gateway class definition
 local Lugate = {}
