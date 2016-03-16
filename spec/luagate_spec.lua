@@ -152,4 +152,8 @@ describe("Check how the request body is converted to string", function()
     assert.is_string(body)
     assert.equals('"method":"service01.say"', string.match(body, '"method":"service01.say"'))
   end)
+
+  assert.equals('/v1', lu1:get_requests()[1]:get_ngx_request()[1])
+  assert.equals('POST', lu1:get_requests()[1]:get_ngx_request()[2]['method'])
+  assert.is_string(lu1:get_requests()[1]:get_ngx_request()[2]['body'])
 end)
