@@ -132,3 +132,24 @@ describe("Check how a single request is parsed to object", function ()
   end)
 end)
 
+describe("Check how the request body is converted to string", function()
+  local lu1 = Lugate:new({
+    body = '{"jsonrpc":"2.0","method":"service01.say","params":{"cache":3600,"route":"v1.service01.say","params":{"foo":"bar"}},"id":1}',
+    routes = {
+      ['^v1%..+'] = '/v1'
+    }
+  })
+
+  it("Request body should be converted to a valid data array", function()
+    assert.equals("2.0", lu1:get_requests()[1]:get_data()['jsonrpc'])
+    assert.equals(1, lu1:get_requests()[1]:get_data()['id'])
+    assert.equals("service01.say", lu1:get_requests()[1]:get_data()['method'])
+    assert.are.same({foo = "bar"}, lu1:get_requests()[1]:get_data()['params'])
+  end)
+
+  it("Request body should be converted to a valid json string", function()
+    local body = lu1:get_requests()[1]:get_body()
+    assert.is_string(body)
+    assert.equals('"method":"service01.say"', string.match(body, '"method":"service01.say"'))
+  end)
+end)

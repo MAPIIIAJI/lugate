@@ -113,7 +113,7 @@ end
 --- Get request body
 -- @return[type=string] Json array
 function Request:get_body()
-  return json.encode(Request:get_data())
+  return json.encode(self:get_data())
 end
 
 --- Build a request in format acceptable by nginx
