@@ -1,7 +1,7 @@
 package = "lugate"
 version = "0.1.1-1"
 source = {
-  url = "git://github.com/zinovyev/lugate.git",
+  url = "git://github.com/zinovyev/lugate",
   tag = "0.1.1",
 }
 description = {
