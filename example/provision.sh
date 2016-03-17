@@ -9,7 +9,7 @@ sudo luarocks install lugate
 cd /tmp
 
 # Download nginx
-wget -q http://nginx.org/download/nginx-1.9.12.tar.gz ; wait ; tar xzf http://nginx.org/download/nginx-1.9.12.tar.gz
+wget -q http://nginx.org/download/nginx-1.9.12.tar.gz ; wait ; tar xvzf nginx-1.9.12.tar.gz
 
 # Go to nginx folder
 cd /tmp/nginx-1.9.12
@@ -21,7 +21,7 @@ git clone https://github.com/simpl/ngx_devel_kit.git
 git clone https://github.com/openresty/lua-nginx-module.git
 
 # Get pcre
-wget -q ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-8.37.tar.bz2 ; wait; tar xjf pcre-8.37.tar.bz2 ; mv pcre-8.37 pcre
+wget -q ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-8.37.tar.bz2 ; wait ; tar xjf pcre-8.37.tar.bz2 ; mv pcre-8.37 pcre
 
 # Get zlib lib
 git clone https://github.com/madler/zlib.git
