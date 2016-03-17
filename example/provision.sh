@@ -2,13 +2,17 @@
 
 # Install dependencies
 sudo apt-get -y update
-sudo apt-get -y install cmake git libpcre3 wget gcc g++ luajit libluajit-5.1-2 libluajit-5.1-dev libssl-dev autotools-dev luajit luarocks libssl1.0.0
+sudo apt-get -y install cmake git libpcre3 curl wget gcc g++ luajit libluajit-5.1-2 libluajit-5.1-dev libssl-dev autotools-dev luajit luarocks libssl1.0.0
 sudo luarocks install lugate
 
+# Go to the /tmp folder for building sources
+cd /tmp
+
 # Download nginx
-wget http://nginx.org/download/nginx-1.9.12.tar.gz
-tar xvzf http://nginx.org/download/nginx-1.9.12.tar.gz
-cd nginx-1.9.12
+wget -q http://nginx.org/download/nginx-1.9.12.tar.gz ; wait ; tar xzf http://nginx.org/download/nginx-1.9.12.tar.gz
+
+# Go to nginx folder
+cd /tmp/nginx-1.9.12
 
 # Download devel kit
 git clone https://github.com/simpl/ngx_devel_kit.git
@@ -17,8 +21,7 @@ git clone https://github.com/simpl/ngx_devel_kit.git
 git clone https://github.com/openresty/lua-nginx-module.git
 
 # Get pcre
-wget ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-8.37.tar.bz2
-tar xvjf pcre2-10.20.tar.bz2 && mv pcre2-10.20.tar.bz2 pcre
+wget -q ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-8.37.tar.bz2 ; wait; tar xjf pcre-8.37.tar.bz2 ; mv pcre-8.37 pcre
 
 # Get zlib lib
 git clone https://github.com/madler/zlib.git
