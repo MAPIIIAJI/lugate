@@ -10,6 +10,9 @@
 --- Json encoder/decoder
 local json = require "rapidjson"
 
+--- Lugate module
+local Lugate = require "lugate"
+
 --- Request obeject
 local Request = {}
 
@@ -121,7 +124,7 @@ end
 -- @param[type=table] data Decoded requets body
 -- @return table
 function Request:get_ngx_request()
-  return { self:get_uri(), { method = 'POST', body = self:get_body() } }
+  return { self:get_uri(), { method = Lugate.HTTP_POST, body = self:get_body() } }
 end
 
 return Request

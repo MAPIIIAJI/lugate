@@ -16,6 +16,8 @@ local Request = require "lugate.request"
 --- The lua gateway class definition
 local Lugate = {}
 
+Lugate.HTTP_POST = 8
+
 --- Create new Lugate instance
 -- @param[type=table] config Table of configuration options: body for raw request body and routes for routing map config
 -- @return[type=Lugate] The new instance of Lugate
