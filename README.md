@@ -8,6 +8,12 @@ Lugate is a helper set which is meant to be used together with [ngx\_http\_lua\_
 It provides you several special methods for validating a JSON-RPC 2.0 request, looping a batch call and building a
 valid response.
 
+## Install
+Lugate can be installed via the luarocks package manager. Just run:
+```bash
+luarocks install lugate
+```
+
 ## Synopsis
 ```lua
     server {
