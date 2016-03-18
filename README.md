@@ -41,9 +41,7 @@ luarocks install lugate
                     body = body,
                     routes = {
                       ["^v1%..+"] = "/v1",
-                      ["^v2%.(.*)%..+"] = "/v2/$1",
-                      ["^v2%.auth%..+"] = "/v2/auth",
-                      ["^v2%.image%..+"] = "/v2/image",
+                      ["^v2%..+"] = "/v2",
                     }
                   })
 
