@@ -38,7 +38,7 @@ end
 -- @return[type=table]
 function Lugate:get_data()
   if not self.data then
-    self.data = json.decode(self.body)
+    self.data = self.body and json.decode(self.body) or {}
   end
 
   return self.data

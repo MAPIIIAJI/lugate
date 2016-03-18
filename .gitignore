@@ -1,3 +1,4 @@
 .idea/
 example/.vagrant
 example/nginx/logs
+example/nginx/*_temp
