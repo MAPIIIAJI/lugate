@@ -17,7 +17,7 @@ luarocks install lugate
 ## Synopsis
 ```lua
     server {
-        listen       80;
+       listen       80;
         server_name  gateway.lugate.loc;
 
         access_log  /var/log/nginx/gateway_access.log;
@@ -51,7 +51,7 @@ luarocks install lugate
                     if request:is_valid() then
                       table.insert(ngx_requests,request:get_ngx_request())
                     else
-                      ngx.say('{"jsonrpc":"2.0","error":{"code":-32700,"message":"Invalid JSON was received by the server.An error occurred on the server while parsing the JSON text.","data":[]},"id":null}')
+                      ngx.say(lugate:get_json_error(Lugate.ERR_PARSE_ERROR))
                       return
                     end
                   end
@@ -65,7 +65,7 @@ luarocks install lugate
                       response_body = string.gsub(response_body, '^%s', '')
                       table.insert(batch_responses, response_body)
                     else
-                      table.insert(batch_responses, '{"jsonrpc":"2.0","error":{"code":-32603,"message":"Internal JSON-RPC error.","data":[]},"id":null}')
+                      ngx.say(lugate:get_json_error(Lugate.ERR_INTERNAL_ERROR))
                     end
                   end
 
@@ -79,11 +79,12 @@ luarocks install lugate
                   return
 
                 else
-                  ngx.say('{"jsonrpc":"2.0","error":{"code":-32601,"message":"Only POST requests are allowed","data":[]},"id":null}')
+                  ngx.say(lugate:get_json_error(Lugate.ERR_INVALID_REQUEST, 'Only POST requests are allowed'))
                   return
                 end
               }
         }
+    }
 ```
 
 ## Lugate proxy call
