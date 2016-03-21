@@ -1,6 +1,10 @@
 -- Load the module
 local Lugate = dofile("./src/lugate.lua")
 
+-- Mock ngx module
+ngx = {}
+package.loaded['ngx'] = ngx
+
 describe("Check Lugate instance constructor", function()
   it("should be initialized", function()
     assert.is_not_nil(Lugate)

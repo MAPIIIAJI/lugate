@@ -14,7 +14,14 @@ local json = require "rapidjson"
 local Request = require "lugate.request"
 
 --- The lua gateway class definition
-local Lugate = {}
+local Lugate = {
+  ERR_PARSE_ERROR = -32700, -- Error code for "Parse error" error
+  ERR_INVALID_REQUEST = -32600, -- Error code for "Invalid request" error
+  ERR_METHOD_NOT_FOUND = -32601, -- Error code for "Method not found" error
+  ERR_INVALID_PARAMS = -32602, -- Error code for "Invalid params" error
+  ERR_INTERNAL_ERROR = -32603, -- Error code for "Internal error" error
+  ERR_SERVER_ERROR = -32000, -- Error code for "Server error" error
+}
 
 Lugate.HTTP_POST = 8
 
@@ -37,7 +44,7 @@ function Lugate:configure(config)
   self.routes = config.routes or {}
 end
 
---- Check if all dependencies are installed or break down on failure
+--- Check all dependencies are installed or break down on failure
 -- @return[type=boolean]
 function Lugate:break_down()
   -- Check that mandatory modules are installed
@@ -90,6 +97,23 @@ end
 -- @return[type=boolean]
 function Lugate:is_batch(data)
   return data and data[1] and ('table' == type(data[1]))
+end
+
+--- Get a proper formated json error
+-- @return[type=string]
+function Lugate:get_json_error(code, message)
+  local messages = {
+    [self.ERR_PARSE_ERROR] = 'Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.',
+    [self.ERR_INVALID_REQUEST] = 'The JSON sent is not a valid Request object.',
+    [self.ERR_METHOD_NOT_FOUND] = 'The method does not exist / is not available.',
+    [self.ERR_INVALID_PARAMS] = 'Invalid method parameter(s).',
+    [self.ERR_INTERNAL_ERROR] = 'Internal JSON-RPC error.',
+    [self.ERR_SERVER_ERROR] = 'Server error',
+  }
+  code = messages[code] and code or self.ERR_SERVER_ERROR
+  message = message or messages[code]
+
+  return '{"jsonrpc":"2.0","error":{"code":' .. code .. ',"message":"' .. message .. '","data":[]},"id":null}'
 end
 
 return Lugate
