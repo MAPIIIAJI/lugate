@@ -24,6 +24,7 @@ Lugate.HTTP_POST = 8
 function Lugate:new(config)
   local lugate = setmetatable({}, Lugate)
   self.__index = self
+  lugate:break_down()
   lugate:configure(config)
 
   return lugate
@@ -34,6 +35,23 @@ end
 function Lugate:configure(config)
   self.body = config.body
   self.routes = config.routes or {}
+end
+
+--- Check if all dependencies are installed or break down on failure
+-- @return[type=boolean]
+function Lugate:break_down()
+  -- Check that mandatory modules are installed
+  local modules = {
+    ngx,
+    rapidjson,
+  }
+  for _, module in iparis(modules) do
+    if not package.loaded[module] then
+      error("Module '" .. module .. "' is required!")
+    end
+  end
+
+  return true
 end
 
 --- Parse raw body
