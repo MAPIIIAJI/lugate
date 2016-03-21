@@ -60,6 +60,7 @@ The *params* member of the [request object](http://www.jsonrpc.org/specification
 
 * **route** - fo the routing note
 * **cache** - for the caching lifetime
+* **key** - the cache key
 * **params** - the regular array of parameter values
 
 After the request is processed by the Lugate module, the **route** and **cache** values are removed from the

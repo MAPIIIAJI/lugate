@@ -56,7 +56,7 @@ end)
 describe("Check how a single request is parsed to object", function ()
   it("Request should be parsed to array from the single request", function()
     local lu1 = Lugate:new({
-      body = '{"jsonrpc":"2.0","method":"service01.say","params":{"cache":3600,"route":"v1.service01.say","params":{"foo":"bar"}},"id":1}',
+      body = '{"jsonrpc":"2.0","method":"service01.say","params":{"cache":3600,"key":"baz","route":"v1.service01.say","params":{"foo":"bar"}},"id":1}',
       routes = {
         ['^v1%..+'] = '/v1'
       }
@@ -76,7 +76,7 @@ end)
 
 describe("Check how the request body is converted to string", function()
   local lu1 = Lugate:new({
-    body = '{"jsonrpc":"2.0","method":"service01.say","params":{"cache":3600,"route":"v1.service01.say","params":{"foo":"bar"}},"id":1}',
+    body = '{"jsonrpc":"2.0","method":"service01.say","params":{"cache":3600,"key":"baz","route":"v1.service01.say","params":{"foo":"bar"}},"id":1}',
     routes = {
       ['^v1%..+'] = '/v1'
     }

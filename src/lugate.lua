@@ -150,7 +150,7 @@ function Lugate:get_ngx_requests()
   return ngx_requests
 end
 
---- Set response
+--- Add new response
 function Lugate:add_response(response)
   if 200 == response.status then
     local response_body = string.gsub(response.body, '%s$', '')
