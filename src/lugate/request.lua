@@ -102,7 +102,8 @@ end
 function Request:get_uri()
   if self:is_proxy_call() then
     for route, uri in pairs(self.routes) do
-      if self:get_route() == string.match(self:get_route(), route) then
+      local uri, matches = string.gsub(self:get_route(), route, uri);
+      if matches >= 1 then
         return uri
       end
     end
