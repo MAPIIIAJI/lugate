@@ -46,7 +46,7 @@ end
 -- @return[type=boolean]
 function Request:is_proxy_call()
   if nil == self.proxy_call then
-    self.proxy_call = self:is_valid() and self.data.params['route'] and self.data.params['params'] and self.data.params['cache'] and true or false
+    self.proxy_call = self:is_valid() and self.data.params['route'] and self.data.params['params'] and self.data.params['cache'] and self.data.params['key'] and true or false
   end
 
   return self.proxy_call

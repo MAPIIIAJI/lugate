@@ -139,8 +139,6 @@ function Lugate:get_ngx_requests()
   local ngx_requests = {}
   for _, request in ipairs(self:get_requests()) do
     if request:is_valid() then
-      ngx.exit(ngx.HTTP_OK)
-
       table.insert(ngx_requests,request:get_ngx_request())
     else
       ngx.say(self.get_json_error(Lugate.ERR_PARSE_ERROR))
