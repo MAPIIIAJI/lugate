@@ -82,6 +82,7 @@ end
 function Lugate:configure(config)
   self.body = config.body
   self.routes = config.routes or {}
+  self.responses = {}
 end
 
 --- Check all dependencies are installed or break down on failure
@@ -147,6 +148,28 @@ function Lugate:get_ngx_requests()
   end
 
   return ngx_requests
+end
+
+--- Set response
+function Lugate:add_response(response)
+  if 200 == response.status then
+    local response_body = string.gsub(response.body, '%s$', '')
+    response_body = string.gsub(response_body, '^%s', '')
+    table.insert(self.responses, response_body)
+  else
+    ngx.say(self:get_json_error(Lugate.ERR_INTERNAL_ERROR))
+  end
+end
+
+--- Print all responses and exit
+function Lugate:print_responses()
+  if 1 == #self.responses then
+    ngx.say(self.responses[1])
+  else
+    ngx.print('[' .. table.concat(self.responses, ",") .. ']')
+  end
+
+  ngx.exit(ngx.HTTP_OK)
 end
 
 --- Check if request is a batch
