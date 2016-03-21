@@ -43,23 +43,11 @@ luarocks install lugate
                   responses = {ngx.location.capture_multi(lugate:get_ngx_requests())}
                   batch_responses = {}
                   for _, response in ipairs(responses) do
-                    if 200 == response.status then
-                      response_body = string.gsub(response.body, '%s$', '')
-                      response_body = string.gsub(response_body, '^%s', '')
-                      table.insert(batch_responses, response_body)
-                    else
-                      ngx.say(lugate:get_json_error(Lugate.ERR_INTERNAL_ERROR))
-                    end
+                    lugate:add_response(response)
                   end
 
                   -- Print responses
-                  if 1 == #batch_responses then
-                    ngx.say(batch_responses[1])
-                  else
-                    ngx.print('[' .. table.concat(batch_responses, ",") .. ']')
-                  end
-
-                  return
+                  lugate:print_responses()
               }
         }
     }
