@@ -69,7 +69,7 @@ function Lugate.get_json_error(code, message)
     [Lugate.ERR_INTERNAL_ERROR] = 'Internal JSON-RPC error.',
     [Lugate.ERR_SERVER_ERROR] = 'Server error',
   }
---  code = messages[code] and code or Lugate.ERR_SERVER_ERROR
+  code = messages[code] and code or Lugate.ERR_SERVER_ERROR
   message = message or messages[code]
 
   return '{"jsonrpc":"2.0","error":{"code":' .. tostring(code) .. ',"message":"' .. message .. '","data":[]},"id":null}'
