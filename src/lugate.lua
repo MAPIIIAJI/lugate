@@ -72,7 +72,7 @@ function Lugate.get_json_error(code, message)
 --  code = messages[code] and code or Lugate.ERR_SERVER_ERROR
   message = message or messages[code]
 
-  return '{"jsonrpc":"2.0","error":{"code":' .. code .. ',"message":"' .. message .. '","data":[]},"id":null}'
+  return '{"jsonrpc":"2.0","error":{"code":' .. tostring(code) .. ',"message":"' .. message .. '","data":[]},"id":null}'
 end
 
 --- Configure lugate instance
