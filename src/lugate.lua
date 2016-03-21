@@ -37,6 +37,44 @@ function Lugate:new(config)
   return lugate
 end
 
+--- Create new Lugate instance. Initialize ngx dependent properties
+-- @param[type=table] config Table of configuration options: body for raw request body and routes for routing map config
+-- @return[type=Lugate] The new instance of Lugate
+function Lugate:init(config)
+  -- Check request method
+  if 'POST' ~= ngx.req.get_method() then
+    ngx.say(Lugate.get_json_error(Lugate.ERR_INVALID_REQUEST, 'Only POST requests are allowed'))
+    ngx.exit(ngx.HTTP_OK)
+  end
+
+  -- Build config
+  config = config or {}
+  ngx.req.read_body() -- explicitly read the req body
+  config['body'] = ngx.req.get_body_data()
+
+  -- Create new lugate instance
+  local lugate = self:new(config)
+
+  return lugate
+end
+
+--- Get a proper formated json error
+-- @return[type=string]
+function Lugate.get_json_error(code, message)
+  local messages = {
+    [Lugate.ERR_PARSE_ERROR] = 'Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.',
+    [Lugate.ERR_INVALID_REQUEST] = 'The JSON sent is not a valid Request object.',
+    [Lugate.ERR_METHOD_NOT_FOUND] = 'The method does not exist / is not available.',
+    [Lugate.ERR_INVALID_PARAMS] = 'Invalid method parameter(s).',
+    [Lugate.ERR_INTERNAL_ERROR] = 'Internal JSON-RPC error.',
+    [Lugate.ERR_SERVER_ERROR] = 'Server error',
+  }
+  code = messages[code] and code or Lugate.ERR_SERVER_ERROR
+  message = message or messages[code]
+
+  return '{"jsonrpc":"2.0","error":{"code":' .. code .. ',"message":"' .. message .. '","data":[]},"id":null}'
+end
+
 --- Configure lugate instance
 -- @param[type=table] config Table of configuration options
 function Lugate:configure(config)
@@ -92,28 +130,28 @@ function Lugate:get_requests()
   return self.requests
 end
 
+--- Get request collection prepared for ngx.location.capture_multi call
+-- @return[type=table] The table of requests
+function Lugate:get_ngx_requests()
+  -- Loop requests
+  local ngx_requests = {}
+  for _, request in ipairs(self:get_requests()) do
+    if request:is_valid() then
+      table.insert(ngx_requests,request:get_ngx_request())
+    else
+      ngx.say(self:get_json_error(Lugate.ERR_PARSE_ERROR))
+      ngx.exit(ngx.HTTP_OK)
+    end
+  end
+
+  return ngx_requests
+end
+
 --- Check if request is a batch
 -- @param[type=table] data Decoded request body
 -- @return[type=boolean]
 function Lugate:is_batch(data)
   return data and data[1] and ('table' == type(data[1]))
-end
-
---- Get a proper formated json error
--- @return[type=string]
-function Lugate:get_json_error(code, message)
-  local messages = {
-    [self.ERR_PARSE_ERROR] = 'Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.',
-    [self.ERR_INVALID_REQUEST] = 'The JSON sent is not a valid Request object.',
-    [self.ERR_METHOD_NOT_FOUND] = 'The method does not exist / is not available.',
-    [self.ERR_INVALID_PARAMS] = 'Invalid method parameter(s).',
-    [self.ERR_INTERNAL_ERROR] = 'Internal JSON-RPC error.',
-    [self.ERR_SERVER_ERROR] = 'Server error',
-  }
-  code = messages[code] and code or self.ERR_SERVER_ERROR
-  message = message or messages[code]
-
-  return '{"jsonrpc":"2.0","error":{"code":' .. code .. ',"message":"' .. message .. '","data":[]},"id":null}'
 end
 
 return Lugate
