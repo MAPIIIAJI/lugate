@@ -59,18 +59,20 @@ function Lugate:init(config)
 end
 
 --- Get a proper formated json error
+-- @param[type=int] Error code
+-- @param[type=string] Error message
 -- @return[type=string]
 function Lugate.get_json_error(code, message)
   local messages = {
-    [Lugate.ERR_PARSE_ERROR] = 'Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.',
-    [Lugate.ERR_INVALID_REQUEST] = 'The JSON sent is not a valid Request object.',
-    [Lugate.ERR_METHOD_NOT_FOUND] = 'The method does not exist / is not available.',
-    [Lugate.ERR_INVALID_PARAMS] = 'Invalid method parameter(s).',
-    [Lugate.ERR_INTERNAL_ERROR] = 'Internal JSON-RPC error.',
-    [Lugate.ERR_SERVER_ERROR] = 'Server error',
+    [Lugate['ERR_PARSE_ERROR']] = 'Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.',
+    [Lugate['ERR_INVALID_REQUEST']] = 'The JSON sent is not a valid Request object.',
+    [Lugate['ERR_METHOD_NOT_FOUND']] = 'The method does not exist / is not available.',
+    [Lugate['ERR_INVALID_PARAMS']] = 'Invalid method parameter(s).',
+    [Lugate['ERR_INTERNAL_ERROR']] = 'Internal JSON-RPC error.',
+    [Lugate['ERR_SERVER_ERROR']] = 'Server error',
   }
-  code = messages[code] and code or Lugate.ERR_SERVER_ERROR
-  message = message or messages[code]
+  local code = messages[code] and code or Lugate.ERR_SERVER_ERROR
+  local message = message or messages[code]
 
   return '{"jsonrpc":"2.0","error":{"code":' .. tostring(code) .. ',"message":"' .. message .. '","data":[]},"id":null}'
 end
@@ -137,9 +139,11 @@ function Lugate:get_ngx_requests()
   local ngx_requests = {}
   for _, request in ipairs(self:get_requests()) do
     if request:is_valid() then
+      ngx.exit(ngx.HTTP_OK)
+
       table.insert(ngx_requests,request:get_ngx_request())
     else
-      ngx.say(self:get_json_error(Lugate.ERR_PARSE_ERROR))
+      ngx.say(self.get_json_error(Lugate.ERR_PARSE_ERROR))
       ngx.exit(ngx.HTTP_OK)
     end
   end

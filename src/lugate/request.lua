@@ -108,7 +108,7 @@ function Request:get_uri()
     end
   end
 
-  return false
+  return '/'
 end
 
 --- Get request body
