@@ -42,10 +42,10 @@ end
 function Lugate:break_down()
   -- Check that mandatory modules are installed
   local modules = {
-    ngx,
-    rapidjson,
+    'ngx',
+    'rapidjson',
   }
-  for _, module in iparis(modules) do
+  for _, module in ipairs(modules) do
     if not package.loaded[module] then
       error("Module '" .. module .. "' is required!")
     end
