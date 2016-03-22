@@ -2,7 +2,8 @@
 
 # Install dependencies
 sudo apt-get -y update
-sudo apt-get -y install cmake git libpcre3 curl wget gcc g++ luajit libluajit-5.1-2 libluajit-5.1-dev libssl-dev autotools-dev luajit luarocks libssl1.0.0
+sudo apt-get -y install cmake git libpcre3 curl wget gcc g++ luajit libluajit-5.1-2 libluajit-5.1-dev libssl-dev autotools-dev luajit luarocks libssl1.0.0 redis-server
+sudo luarocks install luarestyredis
 sudo luarocks install lugate
 
 # Go to the /tmp folder for building sources

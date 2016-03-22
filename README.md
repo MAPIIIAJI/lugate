@@ -16,40 +16,28 @@ luarocks install lugate
 
 ## Synopsis
 ```lua
-    server {
-       listen       80;
-        server_name  gateway.lugate.loc;
+    location / {
+          # MIME type determined by default_type:
+          default_type 'application/json';
 
-        access_log  /var/log/nginx/gateway_access.log;
-        error_log  /var/log/nginx/gateway_error.log;
+          content_by_lua_block {
+              -- Load lugate module
+              local Lugate = require "lugate"
 
-        location / {
-              # MIME type determined by default_type:
-              default_type 'application/json';
+              -- Get new lugate instance
+              local lugate = Lugate:init({
+                routes = {
+                  ['v1%.([^%.]+).*'] = '/v1.%1', -- v1.math.subtract -> /v1.math
+                  ['v2%.([^%.]+).*'] = '/v2.%1', -- v2.math.addition -> /v2.math
+                }
+              })
 
-              content_by_lua_block {
-                  -- Load lugate module
-                  local Lugate = require "lugate"
+              -- Send multi requst and get multi response
+              lugate:run()
 
-                  -- Get new lugate instance
-                  local lugate = Lugate:init({
-                    routes = {
-                      ['v1%.([^%.]+).*'] = '/v1.%1', -- v1.math.subtract -> /v1.math
-                      ['v2%.([^%.]+).*'] = '/v2.%1', -- v2.math.addition -> /v2.math
-                    }
-                  })
-
-                  -- Send multi requst and get multi response
-                  responses = {ngx.location.capture_multi(lugate:get_ngx_requests())}
-                  batch_responses = {}
-                  for _, response in ipairs(responses) do
-                    lugate:add_response(response)
-                  end
-
-                  -- Print responses
-                  lugate:print_responses()
-              }
-        }
+              -- Print responses out
+              lugate:print_responses()
+          }
     }
 ```
 

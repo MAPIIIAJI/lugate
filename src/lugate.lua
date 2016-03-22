@@ -59,8 +59,8 @@ function Lugate:init(config)
 end
 
 --- Get a proper formated json error
--- @param[type=int] Error code
--- @param[type=string] Error message
+-- @param[type=int] code Error code
+-- @param[type=string] message Error message
 -- @return[type=string]
 function Lugate.get_json_error(code, message)
   local messages = {
@@ -135,7 +135,7 @@ end
 
 --- Get request collection prepared for ngx.location.capture_multi call
 -- @return[type=table] The table of requests
-function Lugate:get_ngx_requests()
+function Lugate:run()
   -- Loop requests
   local ngx_requests = {}
   for _, request in ipairs(self:get_requests()) do
@@ -147,7 +147,13 @@ function Lugate:get_ngx_requests()
     end
   end
 
-  return ngx_requests
+  -- Send multi requst and get multi response
+  local responses = {ngx.location.capture_multi(self:ngx_requests())}
+  for _, response in ipairs(responses) do
+    self:add_response(response)
+  end
+
+  return responses
 end
 
 --- Add new response

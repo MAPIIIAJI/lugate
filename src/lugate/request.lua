@@ -80,10 +80,16 @@ function Request:get_route()
   return self:is_proxy_call() and self.data.params.route or nil
 end
 
---- Get request cache param
+--- Get request cache time
 -- @return[type=string]
 function Request:get_cache()
   return self:is_proxy_call() and self.data.params.cache or false
+end
+
+--- Get request cache key
+-- @return[type=string]
+function Request:get_key()
+  return self:is_proxy_call() and self.data.params.key or false
 end
 
 --- Get request data table
