@@ -41,11 +41,12 @@ SHELL
   config.vm.provision "shell", run: "once", inline: <<-SHELL
     sudo mv /usr/local/nginx /tmp/nginx.old
     sudo cp -r /tmp/nginx.bkp /usr/local/nginx
+    #sudo mkdir /usr/local/nginx/logs && touch /usr/local/nginx/logs/error.log && sudo chown -R www /usr/local/nginx/logs
     echo "192.168.50.47 gateway.lugate.loc service01.lugate.loc service02.lugate.loc service03.lugate.loc" >> /etc/hosts
 SHELL
 
   # Run nginx
-  config.vm.provision "shell", run: "always": inline <<-SHELL
+  config.vm.provision "shell", run: "always", inline: <<-SHELL
     sudo nginx
 SHELL
 
