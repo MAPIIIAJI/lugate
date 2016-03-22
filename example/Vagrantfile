@@ -21,6 +21,9 @@ Vagrant.configure(2) do |config|
   config.vm.synced_folder "nginx/", "/usr/local/nginx"
 
   # Upload and run the guest additions iso
+  config.vm.provision "shell", run: "once", inline: <<-SHELL
+    sudo cp -r /usr/local/nginx /tmp/nginx.bkp
+SHELL
   config.vm.provision "file", source: guest_iso, destination: "/tmp/VBoxGuestAdditions.iso", run: "once"
   config.vm.provision "shell", run: "once", inline: <<-SHELL
     sudo apt-get install linux-headers-$(uname -r)
@@ -29,6 +32,10 @@ Vagrant.configure(2) do |config|
     sudo sh /media/VBoxGuestAdditions/VBoxLinuxAdditions.run
     sudo umount /media/VBoxGuestAdditions
     sudo rmdir /media/VBoxGuestAdditions
+SHELL
+  config.vm.provision "shell", run: "once", inline: <<-SHELL
+    sudo rm -rf /usr/local/nginx/*
+    sudo cp -r /tmp/nginx.bkp/* /usr/local/nginx
 SHELL
 
   # Install Nginx and Lua
