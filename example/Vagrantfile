@@ -33,13 +33,21 @@ SHELL
     sudo umount /media/VBoxGuestAdditions
     sudo rmdir /media/VBoxGuestAdditions
 SHELL
-  config.vm.provision "shell", run: "once", inline: <<-SHELL
-    sudo rm -rf /usr/local/nginx/*
-    sudo cp -r /tmp/nginx.bkp/* /usr/local/nginx
-SHELL
 
   # Install Nginx and Lua
   config.vm.provision "shell", run: "once", path: "provision.sh"
+
+  # Apply nginx config
+  config.vm.provision "shell", run: "once", inline: <<-SHELL
+    sudo mv /usr/local/nginx /tmp/nginx.old
+    sudo cp -r /tmp/nginx.bkp /usr/local/nginx
+    echo "192.168.50.47 gateway.lugate.loc service01.lugate.loc service02.lugate.loc service03.lugate.loc" >> /etc/hosts
+SHELL
+
+  # Run nginx
+  config.vm.provision "shell", run: "always": inline <<-SHELL
+    sudo nginx
+SHELL
 
 #   Upload nginx config
 #   config.vm.provision "file", source: "nginx.conf", destination: "/usr/local/nginx/nginx.conf", run: "always"

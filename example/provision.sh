@@ -46,6 +46,6 @@ export LUAJIT_INC=/usr/include/luajit-2.0
 make -j2 && make install
 
 # Create logs dir
-useradd www
-mkdir /var/logs/nginx
-chown -R www /var/log/nginx
+sudo useradd www
+sudo mkdir /var/log/nginx
+sudo chown -R www /var/log/nginx
