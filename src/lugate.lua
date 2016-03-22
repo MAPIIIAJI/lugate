@@ -162,6 +162,7 @@ function Lugate:add_response(response)
     local response_body = string.gsub(response.body, '%s$', '')
     response_body = string.gsub(response_body, '^%s', '')
     table.insert(self.responses, response_body)
+    
   else
     ngx.say(self.get_json_error(Lugate.ERR_INTERNAL_ERROR))
     ngx.exit(ngx.HTTP_OK)
