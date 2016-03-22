@@ -148,7 +148,7 @@ function Lugate:run()
   end
 
   -- Send multi requst and get multi response
-  local responses = {ngx.location.capture_multi(self:ngx_requests())}
+  local responses = {ngx.location.capture_multi(ngx_requests)}
   for _, response in ipairs(responses) do
     self:add_response(response)
   end
@@ -163,7 +163,8 @@ function Lugate:add_response(response)
     response_body = string.gsub(response_body, '^%s', '')
     table.insert(self.responses, response_body)
   else
-    ngx.say(self:get_json_error(Lugate.ERR_INTERNAL_ERROR))
+    ngx.say(self.get_json_error(Lugate.ERR_INTERNAL_ERROR))
+    ngx.exit(ngx.HTTP_OK)
   end
 end
 
