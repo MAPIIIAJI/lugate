@@ -87,22 +87,31 @@ function Lugate:build_json_error(code, message, data, id)
   return '{"jsonrpc":"2.0","error":{"code":' .. tostring(code) .. ',"message":"' .. message .. '","data":' .. data .. '},"id":' .. id .. '}'
 end
 
---- Parse raw body
--- @return[type=table]
-function Lugate:get_data()
-  if not self.data then
-    self.data = self.body and self.json.decode(self.body) or {}
-  end
-
-  return self.data
-end
-
 --- Get ngx request body
 -- @return[type=string]
 function Lugate:get_body()
   if not self.body then
     self.body = self.ngx.req and self.ngx.req.get_body_data() or ''
   end
+
+  return self.body
+end
+
+--- Parse raw body
+-- @return[type=table]
+function Lugate:get_data()
+  if not self.data then
+    self.data = self:get_body() and self.json.decode(self.body) or {}
+  end
+
+  return self.data
+end
+
+--- Check if request is a batch
+-- @param[type=table] data Decoded request body
+-- @return[type=boolean]
+function Lugate:is_batch(data)
+  return data and data[1] and ('table' == type(data[1])) and true or false
 end
 
 --- Get request collection
@@ -176,13 +185,6 @@ function Lugate:print_responses()
   end
 
   ngx.exit(ngx.HTTP_OK)
-end
-
---- Check if request is a batch
--- @param[type=table] data Decoded request body
--- @return[type=boolean]
-function Lugate:is_batch(data)
-  return data and data[1] and ('table' == type(data[1]))
 end
 
 return Lugate

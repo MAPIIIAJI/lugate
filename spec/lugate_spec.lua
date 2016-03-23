@@ -42,25 +42,78 @@ describe("Check json rpc error builder", function()
   end)
 
   it("Method build_json_error should be able to build an error message with empty input", function()
-      assert.equals(
-        '{"jsonrpc":"2.0","error":{"code":-32000,"message":"Server error","data":null},"id":null}',
-        lugate:build_json_error()
-      )
+    assert.equals('{"jsonrpc":"2.0","error":{"code":-32000,"message":"Server error","data":null},"id":null}',
+      lugate:build_json_error())
   end)
 
   it("Method build_json_error should be able to build an error message with a custom input", function()
-    assert.equals(
-      '{"jsonrpc":"2.0","error":{"code":-32000,"message":"","data":{"foo":"bar"}},"id":100500}',
-      lugate:build_json_error(0, "", {foo = "bar"}, 100500)
-    )
+    assert.equals('{"jsonrpc":"2.0","error":{"code":-32000,"message":"","data":{"foo":"bar"}},"id":100500}',
+      lugate:build_json_error(0, "", { foo = "bar" }, 100500))
 
-    assert.equals(
-      '{"jsonrpc":"2.0","error":{"code":-32000,"message":"Non-empty message","data":null},"id":null}',
-      lugate:build_json_error({}, "Non-empty message", nil, nil)
-    )
+    assert.equals('{"jsonrpc":"2.0","error":{"code":-32000,"message":"Non-empty message","data":null},"id":null}',
+      lugate:build_json_error({}, "Non-empty message", nil, nil))
   end)
 end)
 
+describe("Check body and data analysis", function()
+  it("Method get_body() should return empty string when no body is provided", function()
+    local ngx = {}
+    local lugate = Lugate:new({ ngx = ngx, json = require "rapidjson" })
+    assert.equals('', lugate:get_body())
+
+    ngx.req = {
+      get_body_data = function()
+        return 'foo'
+      end
+    }
+
+    assert.equals('', lugate:get_body())
+  end)
+
+  it("Method get_body() should always return a raw body", function()
+    local ngx = {
+      req = {
+        get_body_data = function()
+          return 'foo'
+        end
+      }
+    }
+    local lugate = Lugate:new({ ngx = ngx, json = require "rapidjson" })
+    assert.equals('foo', lugate:get_body())
+  end)
+
+  it("Method get_data() should return an empty table if bad json body is provided", function()
+    local ngx = {
+      req = {
+        get_body_data = function()
+          return 'foo'
+        end
+      }
+    }
+    local lugate = Lugate:new({ ngx = ngx, json = require "rapidjson" })
+    assert.are_same({}, lugate:get_data())
+  end)
+
+  it("Method get_data() should decode a correctly formatted json body", function()
+    local ngx = {
+      req = {
+        get_body_data = function()
+          return '{"foo":"bar"}'
+        end
+      }
+    }
+    local lugate = Lugate:new({ ngx = ngx, json = require "rapidjson" })
+    assert.are_same({foo = "bar"}, lugate:get_data())
+  end)
+
+  it("Method is_batch() should return true if batch is provided and false otherwise", function()
+    local lugate = Lugate:new({ ngx = {}, json = {} })
+    assert.is_true(lugate:is_batch({{foo = "bar"}}))
+    assert.is_false(lugate:is_batch({foo = "bar"}))
+    assert.is_false(lugate:is_batch(nill))
+    assert.is_false(lugate:is_batch("foo"))
+  end)
+end)
 --describe("Check how requests are parsed to objects", function()
 --  it("Requests should be parsed to array from the batch request", function()
 --    local lu1 = Lugate:new({
