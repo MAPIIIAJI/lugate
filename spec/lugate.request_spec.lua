@@ -67,6 +67,11 @@ describe("Check request params are parsed correctly", function()
     assert.equals('method.name', request:get_method())
   end)
 
+  it("Request should contain id property if any provided", function()
+    local request = Request:new({ id = 2 }, {})
+    assert.equals(2, request:get_id())
+  end)
+
   it("Request should contain params property if any provided", function()
     local request = Request:new({ jsonrpc = '2.2', method = 'method.name', params = { one = 1, two = 2 } }, {})
     assert.are_same({ one = 1, two = 2 }, request:get_params())
@@ -83,4 +88,36 @@ describe("Check request params are parsed correctly", function()
     }, {})
     assert.are_same({ one = 1, two = 2 }, request:get_params())
   end)
+
+  it("Request should contain nested proxy params if they are provided", function()
+    local request = Request:new({
+      jsonrpc = '2.2',
+      method = 'method.name',
+      params = {
+        route = 'v1.method.name',
+        cache = false,
+        key = 'd88d8ds00-s',
+        params = { one = 1, two = 2 }
+      }
+    }, {})
+    assert.equal('v1.method.name', request:get_route())
+    assert.equal(false, request:get_cache())
+    assert.equal('d88d8ds00-s', request:get_key())
+  end)
+end)
+
+describe('Check that uri is created correctly', function()
+--  local request = Request:new({
+--    jsonrpc = '2.2',
+--    method = 'method.name',
+--    params = {
+--      route = 'v1.method.name',
+--      cache = false,
+--      key = 'd88d8ds00-s',
+--      params = { one = 1, two = 2 }
+--    }
+--  }, {
+--    '^v2.route.'
+--  })
+
 end)
