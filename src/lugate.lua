@@ -7,9 +7,6 @@
 -- @author Ivan Zinovyev <vanyazin@gmail.com>
 -- @license MIT
 
--- Json encoder/decoder
-local json = require "rapidjson"
-
 -- Request obeject
 local Request = require "lugate.request"
 
@@ -122,13 +119,10 @@ function Lugate:get_requests()
     local data = self:get_data()
     if self:is_batch(data) then
       for _, rdata in ipairs(data) do
-        table.insert(self.requests, Request:new(rdata, self.routes))
+        table.insert(self.requests, Request:new(rdata, self))
       end
     else
-      local request = Request:new(data, self.routes)
-      if request.is_valid then
-        table.insert(self.requests, request)
-      end
+      table.insert(self.requests, Request:new(data, self))
     end
   end
 

@@ -14,11 +14,17 @@ local json = require "rapidjson"
 local Request = {}
 
 --- Create new request
+-- param[type=table] data Request data
+-- param[type=table] lugate Lugate instance
 -- return[type=table] New request instance
-function Request:new(lugate)
+function Request:new(data, lugate)
+  assert(type(data) == "table", "Parameter 'data' is required and should be a table!")
+  assert(type(lugate) == "table", "Parameter 'lugate' is required and should be a table!")
+
   local request = setmetatable({}, Request)
   self.__index = self
   request.lugate = lugate
+  request.data = data
 
   return request
 end
@@ -27,9 +33,9 @@ end
 -- @return[type=boolean]
 function Request:is_valid()
   if nil == self.valid then
-    self.valid = self.lugate.data
-      and self.lugate:get_data()['jsonrpc']
-      and self.lugate:get_data()['method']
+    self.valid = self.data
+      and self.data['jsonrpc']
+      and self.data['method']
       and true or false
   end
 
@@ -42,8 +48,8 @@ end
 function Request:is_proxy_call()
   if nil == self.proxy_call then
     self.proxy_call = self:is_valid()
-      and self.lugate:get_data()['params']['route']
-      and self.lugate:get_data()['params']
+      and self.data['params']['route']
+      and self.data['params']
       and true or false
   end
 
