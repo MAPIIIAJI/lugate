@@ -62,19 +62,21 @@ end
 -- @param[type=int] code Error code
 -- @param[type=string] message Error message
 -- @return[type=string]
-function Lugate.get_json_error(code, message)
+function Lugate.get_json_error(code, message, data, id)
   local messages = {
-    [Lugate['ERR_PARSE_ERROR']] = 'Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.',
-    [Lugate['ERR_INVALID_REQUEST']] = 'The JSON sent is not a valid Request object.',
-    [Lugate['ERR_METHOD_NOT_FOUND']] = 'The method does not exist / is not available.',
-    [Lugate['ERR_INVALID_PARAMS']] = 'Invalid method parameter(s).',
-    [Lugate['ERR_INTERNAL_ERROR']] = 'Internal JSON-RPC error.',
-    [Lugate['ERR_SERVER_ERROR']] = 'Server error',
+    [Lugate.ERR_PARSE_ERROR] = 'Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.',
+    [Lugate.ERR_INVALID_REQUEST] = 'The JSON sent is not a valid Request object.',
+    [Lugate.ERR_METHOD_NOT_FOUND] = 'The method does not exist / is not available.',
+    [Lugate.ERR_INVALID_PARAMS] = 'Invalid method parameter(s).',
+    [Lugate.ERR_INTERNAL_ERROR] = 'Internal JSON-RPC error.',
+    [Lugate.ERR_SERVER_ERROR] = 'Server error',
   }
   local code = messages[code] and code or Lugate.ERR_SERVER_ERROR
   local message = message or messages[code]
+  local data = data and '"' .. tostring(data) .. '"' or 'null'
+  local id = id or 'null'
 
-  return '{"jsonrpc":"2.0","error":{"code":' .. tostring(code) .. ',"message":"' .. message .. '","data":[]},"id":null}'
+  return '{"jsonrpc":"2.0","error":{"code":' .. tostring(code) .. ',"message":"' .. message .. '","data":' .. data .. '},"id":' .. id .. '}'
 end
 
 --- Configure lugate instance
@@ -145,6 +147,8 @@ function Lugate:run()
       ngx.say(self.get_json_error(Lugate.ERR_PARSE_ERROR))
       ngx.exit(ngx.HTTP_OK)
     end
+
+--    table.insert(ngx_requests,)
   end
 
   -- Send multi requst and get multi response
@@ -158,15 +162,14 @@ end
 
 --- Add new response
 function Lugate:add_response(response)
-  if 200 == response.status then
-    local response_body = string.gsub(response.body, '%s$', '')
-    response_body = string.gsub(response_body, '^%s', '')
-    table.insert(self.responses, response_body)
-    
-  else
-    ngx.say(self.get_json_error(Lugate.ERR_INTERNAL_ERROR))
-    ngx.exit(ngx.HTTP_OK)
+  local response_body = string.gsub(response.body, '%s$', '')
+  response_body = string.gsub(response_body, '^%s', '')
+  if 200 ~= response.status then
+    local error_data
+    response_body = self.get_json_error(Lugate.ERR_INTERNAL_ERROR, nil, '"body":"' .. response_body .. '"', nil)
   end
+
+  table.insert(self.responses, response_body)
 end
 
 --- Print all responses and exit
