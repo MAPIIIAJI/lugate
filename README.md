@@ -1,13 +1,12 @@
 # Lugate
-Lugate is a lua module for building JSON-RPC 2.0 Gateway APIs just inside of your Nginx configuration file.
+Lugate is a library for building JSON-RPC 2.0 Gateway API just inside of your NGINX configuration file
 
 [![Build Status](https://travis-ci.org/zinovyev/lugate.svg?branch=master)](https://travis-ci.org/zinovyev/lugate)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/zinovyev/lugate/master/LICENSE)
 
 ## About
-Lugate is a helper set which is meant to be used together with [ngx\_http\_lua\_module](https://github.com/openresty/lua-nginx-module) module.
-It provides you several special methods for validating a JSON-RPC 2.0 request, looping a batch call and building a
-valid response.
+Lugate is a binding over OpenResty's [ngx\_http\_lua\_module](https://github.com/openresty/lua-nginx-module) module.
+This library provides parsing, validating and routing features for JSON-RPC 2.0 protocol.
 
 ## Install
 Lugate can be installed via the luarocks package manager. Just run:
