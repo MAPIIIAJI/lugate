@@ -41,7 +41,7 @@ function Lugate:new(config)
   lugate.json = config.json
   lugate.cache = config.cache
   lugate.routes = config.routes or {}
-  lugate.requests = {}
+  lugate.request_ids = {}
   lugate.responses = {}
 
   return lugate
@@ -131,34 +131,40 @@ end
 function Lugate:run()
   -- Loop requests
   local ngx_requests = {}
-  for _, request in ipairs(self:get_requests()) do
+  for request_id, request in ipairs(self:get_requests()) do
     if request:is_valid() then
       table.insert(ngx_requests,request:get_ngx_request())
+      self.request_ids[#ngx_requests] = request_id
     else
-      local ngx_request = self.get_json_error(Lugate.ERR_PARSE_ERROR, nil, json.encode(request), request:get_id())
+      self:add_response(
+        request_id,
+        self:get_json_error(Lugate.ERR_PARSE_ERROR, nil, request, request:get_id()),
+        true
+      )
     end
-
-    table.insert(ngx_requests, ngx_request)
   end
 
   -- Send multi requst and get multi response
   local responses = {ngx.location.capture_multi(ngx_requests)}
-  for _, response in ipairs(responses) do
-    self:add_response(response)
+  for response_id, response in ipairs(responses) do
+    local request_id = self.request_ids[response_id]
+    self:add_response(request_id, response)
   end
 
   return responses
 end
 
 --- Add new response
-function Lugate:add_response(response)
-  local response_body = string.gsub(response.body, '%s$', '')
-  response_body = string.gsub(response_body, '^%s', '')
-  if 200 ~= response.status then
-    response_body = self.get_json_error(Lugate.ERR_INTERNAL_ERROR, nil, json.encode(response.status), nil)
+function Lugate:add_response(request_id, response, as_is)
+  if not as_is then
+    local response_body = string.gsub(response.body, '%s$', '')
+    response = string.gsub(response_body, '^%s', '')
+    if 200 ~= response.status then
+      response = self:get_json_error(Lugate.ERR_INTERNAL_ERROR, nil, response, nil)
+    end
   end
 
-  table.insert(self.responses, response_body)
+  self.responses[request_id] = response
 end
 
 --- Print all responses and exit

@@ -15,27 +15,22 @@ local Request = {}
 
 --- Create new request
 -- return[type=table] New request instance
-function Request:new(data, routes)
+function Request:new(lugate)
   local request = setmetatable({}, Request)
   self.__index = self
-  request:configure(data, routes)
+  request.lugate = lugate
 
   return request
-end
-
---- Configure request instance
--- @param[type=table] data Table of request data
--- @param[type=table] routes Table of routes
-function Request:configure(data, routes)
-  self.data = data
-  self.routes = routes or {}
 end
 
 --- Check if request is valid JSON-RPC 2.0
 -- @return[type=boolean]
 function Request:is_valid()
   if nil == self.valid then
-    self.valid = self.data and self.data['jsonrpc'] and self.data['method'] and self.data['params'] and self.data['id'] and true or false
+    self.valid = self.lugate.data
+      and self.lugate:get_data()['jsonrpc']
+      and self.lugate:get_data()['method']
+      and true or false
   end
 
   return self.valid
@@ -46,61 +41,55 @@ end
 -- @return[type=boolean]
 function Request:is_proxy_call()
   if nil == self.proxy_call then
-    self.proxy_call = self:is_valid() and self.data.params['route'] and self.data.params['params'] and true or false
+    self.proxy_call = self:is_valid()
+      and self.lugate:get_data()['params']['route']
+      and self.lugate:get_data()['params']
+      and true or false
   end
 
   return self.proxy_call
 end
 
+--- Get JSON-RPC version
+-- @return[type=string]
 function Request:get_jsonrpc()
-  return self.data.jsonrpc
+  return self.lugate:get_data()['jsonrpc']
 end
 
 --- Get method name
 -- @return[type=string]
 function Request:get_method()
-  return self.data.method
+  return self.lugate:get_data()['method']
 end
 
---- Get request params
+--- Get request params (search for nested params)
 -- @return[type=table]
 function Request:get_params()
-  return self:is_proxy_call() and self.data.params.params or self.data.params
+  return self.lugate:is_proxy_call() and self.lugate:get_data()['params'].params or self.lugate:get_data()['params']
 end
 
 --- Get request id
 -- @return[type=int]
 function Request:get_id()
-  return self.data.id
+  return self.lugate:get_data().id
 end
 
 --- Get request route
 -- @return[type=string]
 function Request:get_route()
-  return self:is_proxy_call() and self.data.params.route or nil
+  return self.lugate:is_proxy_call() and self.lugate:get_data().params.route or nil
 end
 
 --- Get request cache time
 -- @return[type=string]
 function Request:get_cache()
-  return self:is_proxy_call() and self.data.params.cache or false
+  return self.lugate:is_proxy_call() and self.lugate:get_data().params.cache or false
 end
 
 --- Get request cache key
 -- @return[type=string]
 function Request:get_key()
-  return self:is_proxy_call() and self.data.params.key or false
-end
-
---- Get request data table
--- @return[type=table]
-function Request:get_data()
-  return {
-    jsonrpc = self:get_jsonrpc(),
-    id = self:get_id(),
-    method = self:get_method(),
-    params = self:get_params()
-  }
+  return self.lugate:is_proxy_call() and self.lugate:get_data().params.key or false
 end
 
 --- Get which uri is passing for request data
@@ -116,6 +105,17 @@ function Request:get_uri()
   end
 
   return '/'
+end
+
+--- Get request data table
+-- @return[type=table]
+function Request:get_data()
+  return {
+    jsonrpc = self:get_jsonrpc(),
+    id = self:get_id(),
+    method = self:get_method(),
+    params = self:get_params()
+  }
 end
 
 --- Get request body
