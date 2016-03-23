@@ -29,6 +29,11 @@ describe("Check request validation", function()
     assert.is_true(request:is_valid())
   end)
 
+  it("Request should be invalid if jsonrpc version and method are provided", function()
+    local request = Request:new({ method = 'foo.bar' }, {})
+    assert.is_false(request:is_valid())
+  end)
+
   it("Request should be a valid proxy call if params and route values are provided", function()
     local request = Request:new({
       jsonrpc = '2.0',
@@ -45,8 +50,37 @@ describe("Check request validation", function()
     local request = Request:new({
       jsonrpc = '2.0',
       method = 'foo.bar',
-      params = {foo = "bar"}
+      params = { foo = "bar" }
     }, {})
     assert.is_false(request:is_proxy_call())
+  end)
+end)
+
+describe("Check request params are parsed correctly", function()
+  it("Request should contain jsonrpc property if any provided", function()
+    local request = Request:new({ jsonrpc = '2.2' }, {})
+    assert.equals('2.2', request:get_jsonrpc())
+  end)
+
+  it("Request should contain method property if any provided", function()
+    local request = Request:new({ method = 'method.name' }, {})
+    assert.equals('method.name', request:get_method())
+  end)
+
+  it("Request should contain params property if any provided", function()
+    local request = Request:new({ jsonrpc = '2.2', method = 'method.name', params = { one = 1, two = 2 } }, {})
+    assert.are_same({ one = 1, two = 2 }, request:get_params())
+  end)
+
+  it("Request should contain params property even if they are nested provided", function()
+    local request = Request:new({
+      jsonrpc = '2.2',
+      method = 'method.name',
+      params = {
+        route = 'v1.method.name',
+        params = { one = 1, two = 2 }
+      }
+    }, {})
+    assert.are_same({ one = 1, two = 2 }, request:get_params())
   end)
 end)
