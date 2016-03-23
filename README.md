@@ -3,6 +3,7 @@ Lugate is a library for building JSON-RPC 2.0 Gateway API just inside of your NG
 
 [![Build Status](https://travis-ci.org/zinovyev/lugate.svg?branch=master)](https://travis-ci.org/zinovyev/lugate)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/zinovyev/lugate/master/LICENSE)
+[![GitHub version](https://badge.fury.io/gh/zinovyev%2Flugate.svg)](https://badge.fury.io/gh/zinovyev%2Flugate)
 
 ## About
 Lugate is a binding over OpenResty's [ngx\_http\_lua\_module](https://github.com/openresty/lua-nginx-module) module.
