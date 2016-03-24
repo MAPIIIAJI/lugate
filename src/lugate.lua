@@ -141,10 +141,14 @@ function Lugate:run()
         table.insert(ngx_requests, req)
         self.req_num[#ngx_requests] = i
       else
-        self.responses[i] = self:build_json_error(Lugate.ERR_SERVER_ERROR, err, request:get_body(), request:get_id())
+        self.responses[i] = self:clean_response(
+          self:build_json_error(Lugate.ERR_SERVER_ERROR, err, request:get_body(), request:get_id())
+        )
       end
     else
-      self.responses[i] = self:build_json_error(Lugate.ERR_PARSE_ERROR, nil, request:get_body(), request:get_id())
+      self.responses[i] = self:clean_response(
+        self:build_json_error(Lugate.ERR_PARSE_ERROR, nil, request:get_body(), request:get_id())
+      )
     end
   end
 
@@ -152,7 +156,7 @@ function Lugate:run()
   if #ngx_requests > 0 then
     local responses = { ngx.location.capture_multi(ngx_requests) }
     for n, response in ipairs(responses) do
-      self.responses[self.req_num[n]] = response.body
+      self.responses[self.req_num[n]] = self:clean_response(response)
     end
   end
 
