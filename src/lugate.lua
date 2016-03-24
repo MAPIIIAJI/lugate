@@ -37,15 +37,19 @@ function Lugate:new(config)
   lugate.ngx = config.ngx
   lugate.json = config.json
   lugate.routes = config.routes or {}
-  lugate.req_num = {}
+  lugate.cache = lugate:load_module(config.cache or "dummy", { dummy = "lugate.cache.cache", redis = "lugate.cache.redis" })
+  lugate.req_dat = { num = {}, key = {}, exp = {} }
   lugate.responses = {}
 
   return lugate
 end
 
 --- Load module from the list of alternatives
--- @return[type=table] Loaded module
+-- @return [type=table] Loaded module
 function Lugate:load_module(name, alternatives)
+  assert(type(name) == "string", "Parameter 'name' is required and should be a string!")
+  assert(type(alternatives) == "table", "Parameter 'alternatives' is required and should be a table!")
+
   local aliases = ''
   for alias, module in pairs(alternatives) do
     if alias == name then
@@ -148,20 +152,20 @@ function Lugate:run()
   -- Loop requests
   local ngx_requests = {}
   for i, request in ipairs(self:get_requests()) do
-    if request:is_valid() then
+    if request:get_key() and self.cache:get(request:get_key()) then
+      self.responses[i] = self.cache:get(request:get_key())
+    elseif request:is_valid() then
       local req, err = request:get_ngx_request()
       if req then
         table.insert(ngx_requests, req)
-        self.req_num[#ngx_requests] = i
+        self.req_dat.num[#ngx_requests] = i
+        self.req_dat.key[#ngx_requests] = request:get_key()
+        self.req_dat.exp[#ngx_requests] = request:get_cache()
       else
-        self.responses[i] = self:clean_response(
-          self:build_json_error(Lugate.ERR_SERVER_ERROR, err, request:get_body(), request:get_id())
-        )
+        self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_SERVER_ERROR, err, request:get_body(), request:get_id()))
       end
     else
-      self.responses[i] = self:clean_response(
-        self:build_json_error(Lugate.ERR_PARSE_ERROR, nil, request:get_body(), request:get_id())
-      )
+      self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_PARSE_ERROR, nil, request:get_body(), request:get_id()))
     end
   end
 
@@ -169,7 +173,11 @@ function Lugate:run()
   if #ngx_requests > 0 then
     local responses = { ngx.location.capture_multi(ngx_requests) }
     for n, response in ipairs(responses) do
-      self.responses[self.req_num[n]] = self:clean_response(response)
+      self.responses[self.req_dat.num[n]] = self:clean_response(response)
+      -- Store to cache
+      if self.req_dat.key[n] then
+        self.cache.set(self.req_dat.key[n], self.responses[self.req_dat.num[n]], self.req_dat.exp[n])
+      end
     end
   end
 
