@@ -10,9 +10,6 @@
 --- Request factory
 local Request = require "lugate.request"
 
---- Cache factory
-local Cache = require "lugate.cache"
-
 --- The lua gateway class definition
 local Lugate = {
   ERR_PARSE_ERROR = -32700, -- Error code for "Parse error" error
@@ -39,12 +36,25 @@ function Lugate:new(config)
   -- Define services and configs
   lugate.ngx = config.ngx
   lugate.json = config.json
-  lugate.cache = config.cache and Cache:new(unpack(config.cache))
   lugate.routes = config.routes or {}
   lugate.req_num = {}
   lugate.responses = {}
 
   return lugate
+end
+
+--- Load module from the list of alternatives
+-- @return[type=table] Loaded module
+function Lugate:load_module(name, alternatives)
+  local aliases = ''
+  for alias, module in pairs(alternatives) do
+    if alias == name then
+      return require(module)
+    end
+    aliases = '' == aliases and alias or aliases .. "', '" .. alias
+  end
+
+  error("Unknown module '" .. name .. "'. Available modules are: '" .. aliases .. "'")
 end
 
 --- Create new Lugate instance. Initialize ngx dependent properties
