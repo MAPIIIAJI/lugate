@@ -38,7 +38,7 @@ function Lugate:new(config)
   lugate.json = config.json
   lugate.cache = config.cache
   lugate.routes = config.routes or {}
-  lugate.requests_num = {}
+  lugate.req_num = {}
   lugate.responses = {}
 
   return lugate
@@ -134,42 +134,38 @@ end
 function Lugate:run()
   -- Loop requests
   local ngx_requests = {}
-  for _, request in ipairs(self:get_requests()) do
+  for i, request in ipairs(self:get_requests()) do
     if request:is_valid() then
       local req, err = request:get_ngx_request()
       if req then
         table.insert(ngx_requests, req)
+        self.req_num[#ngx_requests] = i
       else
-        table.insert(self.responses,
-          self:build_json_error(Lugate.ERR_SERVER_ERROR, err, request:get_body(), request:get_id()))
+        self.responses[i] = self:build_json_error(Lugate.ERR_SERVER_ERROR, err, request:get_body(), request:get_id())
       end
     else
-      table.insert(self.responses,
-        self:build_json_error(Lugate.ERR_PARSE_ERROR, nil, request:get_body(), request:get_id()))
+      self.responses[i] = self:build_json_error(Lugate.ERR_PARSE_ERROR, nil, request:get_body(), request:get_id())
     end
   end
 
   -- Send multi requst and get multi response
-  local responses = {}
   if #ngx_requests > 0 then
-    responses = { ngx.location.capture_multi(ngx_requests) }
-    for _, response in ipairs(responses) do
-      self:add_response(response)
+    local responses = { ngx.location.capture_multi(ngx_requests) }
+    for n, response in ipairs(responses) do
+      self.responses[self.req_num[n]] = response.body
     end
   end
 
-  return responses
+  return self.responses
 end
 
---- Add new response
-function Lugate:add_response(response)
-  local response_body = string.gsub(response.body, '%s$', '')
+--- Clean response
+function Lugate:clean_response(response)
+  local response_body = response.body or response
+  response_body = string.gsub(response_body, '%s$', '')
   response_body = string.gsub(response_body, '^%s', '')
-  if 200 ~= response.status then
-    response_body = self:build_json_error(Lugate.ERR_INTERNAL_ERROR, nil, response_body, nil)
-  end
 
-  table.insert(self.responses, response_body)
+  return response_body
 end
 
 --- Print all responses and exit
