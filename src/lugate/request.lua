@@ -99,18 +99,19 @@ function Request:get_key()
 end
 
 --- Get which uri is passing for request data
--- @return[type=string]
+-- @return[type=string] Request uri
+-- @return[type=string] Error
 function Request:get_uri()
   if self:is_proxy_call() then
     for route, uri in pairs(self.lugate.routes) do
       local uri, matches = string.gsub(self:get_route(), route, uri);
       if matches >= 1 then
-        return uri
+        return uri, nil
       end
     end
   end
 
-  return '/'
+  return nil, 'Failed to bind the route'
 end
 
 --- Get request data table

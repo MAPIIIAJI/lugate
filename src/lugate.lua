@@ -148,7 +148,7 @@ function Lugate:run()
   -- Send multi requst and get multi response
   local responses = { ngx.location.capture_multi(ngx_requests) }
   for response_id, response in ipairs(responses) do
-    local request_id = self.request_ids[response_id]
+    local request_id = self.requests_num[response_id]
     self:add_response(request_id, response)
   end
 
