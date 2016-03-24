@@ -107,17 +107,39 @@ describe("Check request params are parsed correctly", function()
 end)
 
 describe('Check that uri is created correctly', function()
---  local request = Request:new({
---    jsonrpc = '2.2',
---    method = 'method.name',
---    params = {
---      route = 'v1.method.name',
---      cache = false,
---      key = 'd88d8ds00-s',
---      params = { one = 1, two = 2 }
---    }
---  }, {
---    '^v2.route.'
---  })
-
+  local lugate = {
+    routes = {
+      ['^v2%..*'] = '/api/v2/'
+    }
+  }
+  it("Should provide a correct uri if route matches", function()
+    local data = {
+      jsonrpc = '2.2',
+      method = 'method.name',
+      params = {
+        route = 'v2.method.name',
+        cache = false,
+        key = 'd88d8ds00-s',
+        params = { one = 1, two = 2 }
+      },
+      id = 1,
+    }
+    local request = Request:new(data, lugate)
+    assert.equal('/api/v2/', request:get_uri())
+  end)
+  it("Should not provide a correct uri if the route doesn not match", function()
+    local data = {
+      jsonrpc = '2.2',
+      method = 'method.name',
+      params = {
+        route = 'v1.method.name',
+        cache = false,
+        key = 'd88d8ds00-s',
+        params = { one = 1, two = 2 }
+      },
+      id = 1,
+    }
+    local request = Request:new(data, lugate)
+    assert.equal('/', request:get_uri())
+  end)
 end)
