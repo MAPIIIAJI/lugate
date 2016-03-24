@@ -142,24 +142,26 @@ function Lugate:run()
         self.requests_num[#ngx_requests] = num
       else
         self:add_response(num,
-          self:build_json_error(Lugate.ERR_PARSE_ERROR, nil, {request = request, error = err}, request:get_id()),
+          self:build_json_error(Lugate.ERR_SERVER_ERROR, err, request:get_body(), request:get_id()),
           true)
       end
     else
       self:add_response(num,
-        self:build_json_error(Lugate.ERR_PARSE_ERROR, nil, request, request:get_id()),
+        self:build_json_error(Lugate.ERR_PARSE_ERROR, nil, request:get_body(), request:get_id()),
         true)
     end
   end
 
   -- Send multi requst and get multi response
-  local responses = { ngx.location.capture_multi(ngx_requests) }
-  for response_id, response in ipairs(responses) do
-    local request_id = self.requests_num[response_id]
-    self:add_response(request_id, response)
+  if #ngx_requests > 0 then
+    local responses = { ngx.location.capture_multi(ngx_requests) }
+    for response_id, response in ipairs(responses) do
+      local request_id = self.requests_num[response_id]
+      self:add_response(request_id, response)
+    end
   end
 
-  return responses
+  return responses or {}
 end
 
 --- Add new response
