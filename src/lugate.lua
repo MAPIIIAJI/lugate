@@ -23,8 +23,8 @@ local Lugate = {
 Lugate.HTTP_POST = 8
 
 --- Create new Lugate instance
--- @param[type=table] config Table of configuration options: body for raw request body and routes for routing map config
--- @return[type=Lugate] The new instance of Lugate
+-- @param [ t y p e = t a b l e ] config Table of configuration options: body for raw request body and routes for routing map config
+-- @return [ t y p e = L u g a t e ] The new instance of Lugate
 function Lugate:new(config)
   assert(type(config.ngx) == "table", "Parameter 'ngx' is required and should be a table!")
   assert(type(config.json) == "table", "Parameter 'json' is required and should be a table!")
@@ -45,15 +45,15 @@ function Lugate:new(config)
 end
 
 --- Create new Lugate instance. Initialize ngx dependent properties
--- @param[type=table] config Table of configuration options: body for raw request body and routes for routing map config
--- @return[type=Lugate] The new instance of Lugate
+-- @param [ t y p e = t a b l e ] config Table of configuration options: body for raw request body and routes for routing map config
+-- @return [ t y p e = L u g a t e ] The new instance of Lugate
 function Lugate:init(config)
   -- Create new lugate instance
   local lugate = self:new(config)
 
   -- Check request method
   if 'POST' ~= lugate.ngx.req.get_method() then
-    lugate.ngx.say(lugate:get_json_error(Lugate.ERR_INVALID_REQUEST, 'Only POST requests are allowed'))
+    lugate.ngx.say(lugate:build_json_error(Lugate.ERR_INVALID_REQUEST, 'Only POST requests are allowed'))
     lugate.ngx.exit(lugate.ngx.HTTP_OK)
   end
 
@@ -64,9 +64,9 @@ function Lugate:init(config)
 end
 
 --- Get a proper formated json error
--- @param[type=int] code Error code
--- @param[type=string] message Error message
--- @return[type=string]
+-- @param [ t y p e = i n t ] code Error code
+-- @param [ t y p e = s t r i n g ] message Error message
+-- @return [ t y p e = s t r i n g ]
 function Lugate:build_json_error(code, message, data, id)
   local messages = {
     [Lugate.ERR_PARSE_ERROR] = 'Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.',
@@ -85,7 +85,7 @@ function Lugate:build_json_error(code, message, data, id)
 end
 
 --- Get ngx request body
--- @return[type=string]
+-- @return [ t y p e = s t r i n g ]
 function Lugate:get_body()
   if not self.body then
     self.body = self.ngx.req and self.ngx.req.get_body_data() or ''
@@ -95,7 +95,7 @@ function Lugate:get_body()
 end
 
 --- Parse raw body
--- @return[type=table]
+-- @return [ t y p e = t a b l e ]
 function Lugate:get_data()
   if not self.data then
     self.data = self:get_body() and self.json.decode(self.body) or {}
@@ -105,14 +105,14 @@ function Lugate:get_data()
 end
 
 --- Check if request is a batch
--- @param[type=table] data Decoded request body
--- @return[type=boolean]
+-- @param [ t y p e = t a b l e ] data Decoded request body
+-- @return [ t y p e = b o o l e a n ]
 function Lugate:is_batch(data)
   return data and data[1] and ('table' == type(data[1])) and true or false
 end
 
 --- Get request collection
--- @return[type=table] The table of requests
+-- @return [ t y p e = t a b l e ] The table of requests
 function Lugate:get_requests()
   if not self.requests then
     self.requests = {}
@@ -130,25 +130,29 @@ function Lugate:get_requests()
 end
 
 --- Get request collection prepared for ngx.location.capture_multi call
--- @return[type=table] The table of requests
+-- @return [ t y p e = t a b l e ] The table of requests
 function Lugate:run()
   -- Loop requests
   local ngx_requests = {}
-  for request_id, request in ipairs(self:get_requests()) do
+  for num, request in ipairs(self:get_requests()) do
     if request:is_valid() then
-      table.insert(ngx_requests,request:get_ngx_request())
-      self.request_ids[#ngx_requests] = request_id
+      table.insert(ngx_requests, request:get_ngx_request())
+      self.requests_num[#ngx_requests] = num
+--      self:add_response(num,
+--        self:get_json_error(Lugate.ERR_SERVER_ERROR,
+--          "No response provided",
+--          request,
+--          request:get_id()),
+--        true)
     else
-      self:add_response(
-        request_id,
-        self:get_json_error(Lugate.ERR_PARSE_ERROR, nil, request, request:get_id()),
-        true
-      )
+      self:add_response(num,
+        self:build_json_error(Lugate.ERR_PARSE_ERROR, nil, request, request:get_id()),
+        true)
     end
   end
 
   -- Send multi requst and get multi response
-  local responses = {ngx.location.capture_multi(ngx_requests)}
+  local responses = { ngx.location.capture_multi(ngx_requests) }
   for response_id, response in ipairs(responses) do
     local request_id = self.request_ids[response_id]
     self:add_response(request_id, response)
@@ -158,16 +162,16 @@ function Lugate:run()
 end
 
 --- Add new response
-function Lugate:add_response(request_id, response, as_is)
+function Lugate:add_response(num, response, as_is)
   if not as_is then
     local response_body = string.gsub(response.body, '%s$', '')
     response = string.gsub(response_body, '^%s', '')
     if 200 ~= response.status then
-      response = self:get_json_error(Lugate.ERR_INTERNAL_ERROR, nil, response, nil)
+      response = self:build_json_error(Lugate.ERR_INTERNAL_ERROR, nil, response, nil)
     end
   end
 
-  self.responses[request_id] = response
+  self.responses[num] = response
 end
 
 --- Print all responses and exit
