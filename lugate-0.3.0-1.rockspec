@@ -23,5 +23,7 @@ build = {
   modules = {
     lugate = "src/lugate.lua",
     ["lugate.request"] = "src/lugate/request.lua",
+    ["lugate.cache.cache"] = "src/lugate/cache/cache.lua",
+    ["lugate.cache.redis"] = "src/lugate/cache/redis.lua",
   },
 }

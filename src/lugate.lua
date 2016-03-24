@@ -37,7 +37,7 @@ function Lugate:new(config)
   lugate.ngx = config.ngx
   lugate.json = config.json
   lugate.routes = config.routes or {}
-  lugate.cache = lugate:load_module(config.cache or "dummy", { dummy = "lugate.cache.cache", redis = "lugate.cache.redis" })
+  lugate.cache = lugate:load_module(config.cache or 'dummy', { dummy = "lugate.cache.cache", redis = "lugate.cache.redis" })
   lugate.req_dat = { num = {}, key = {}, exp = {} }
   lugate.responses = {}
 
