@@ -133,9 +133,15 @@ end
 
 --- Build a request in format acceptable by nginx
 -- @param[type=table] data Decoded requets body
--- @return table
+-- @return[type=string] Uri
+-- @return[type=string] Error message
 function Request:get_ngx_request()
-  return { self:get_uri(), { method = 8, body = self:get_body() } }
+  local uri, err = self:get_uri()
+  if uri then
+    return { self:get_uri(), { method = 8, body = self:get_body() } }, nil
+  end
+
+  return nil, err
 end
 
 return Request

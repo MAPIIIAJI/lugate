@@ -136,8 +136,15 @@ function Lugate:run()
   local ngx_requests = {}
   for num, request in ipairs(self:get_requests()) do
     if request:is_valid() then
-      table.insert(ngx_requests, request:get_ngx_request())
-      self.requests_num[#ngx_requests] = num
+      local req, err = request:get_ngx_request()
+      if req then
+        table.insert(ngx_requests, request:get_ngx_request())
+        self.requests_num[#ngx_requests] = num
+      else
+        self:add_response(num,
+          self:build_json_error(Lugate.ERR_PARSE_ERROR, nil, {request = request, error = err}, request:get_id()),
+          true)
+      end
     else
       self:add_response(num,
         self:build_json_error(Lugate.ERR_PARSE_ERROR, nil, request, request:get_id()),
