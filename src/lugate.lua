@@ -38,7 +38,7 @@ function Lugate:new(config)
   lugate.json = config.json
   lugate.cache = config.cache
   lugate.routes = config.routes or {}
-  lugate.request_ids = {}
+  lugate.requests_num = {}
   lugate.responses = {}
 
   return lugate
@@ -138,12 +138,6 @@ function Lugate:run()
     if request:is_valid() then
       table.insert(ngx_requests, request:get_ngx_request())
       self.requests_num[#ngx_requests] = num
---      self:add_response(num,
---        self:get_json_error(Lugate.ERR_SERVER_ERROR,
---          "No response provided",
---          request,
---          request:get_id()),
---        true)
     else
       self:add_response(num,
         self:build_json_error(Lugate.ERR_PARSE_ERROR, nil, request, request:get_id()),
