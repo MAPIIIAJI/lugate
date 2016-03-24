@@ -103,17 +103,37 @@ describe("Check body and data analysis", function()
       }
     }
     local lugate = Lugate:new({ ngx = ngx, json = require "rapidjson" })
-    assert.are_same({foo = "bar"}, lugate:get_data())
+    assert.are_same({ foo = "bar" }, lugate:get_data())
   end)
 
   it("Method is_batch() should return true if batch is provided and false otherwise", function()
     local lugate = Lugate:new({ ngx = {}, json = {} })
-    assert.is_true(lugate:is_batch({{foo = "bar"}}))
-    assert.is_false(lugate:is_batch({foo = "bar"}))
+    assert.is_true(lugate:is_batch({ { foo = "bar" } }))
+    assert.is_false(lugate:is_batch({ foo = "bar" }))
     assert.is_false(lugate:is_batch(nill))
     assert.is_false(lugate:is_batch("foo"))
   end)
 end)
+
+describe("Check request factory", function()
+  local ngx = { req = {} }
+  it("Should return a single request for a single dimensional table", function()
+    local lugate = Lugate:new({ ngx = ngx, json = require "rapidjson" })
+    ngx.req.get_body_data = function()
+      return '{"foo":"bar"}'
+    end
+    assert.equal(1, #lugate:get_requests())
+  end)
+
+  it("Should return a multi request for the multi dimensional table", function()
+    local lugate = Lugate:new({ ngx = ngx, json = require "rapidjson" })
+    ngx.req.get_body_data = function()
+      return '[{"foo":"bar"},{"foo":"bar"},{"foo":"bar"}]'
+    end
+    assert.equal(3, #lugate:get_requests())
+  end)
+end)
+
 --describe("Check how requests are parsed to objects", function()
 --  it("Requests should be parsed to array from the batch request", function()
 --    local lu1 = Lugate:new({
