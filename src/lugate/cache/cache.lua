@@ -9,4 +9,25 @@
 
 local Cache = {}
 
+--- Create new cache instance
+-- @params[type=string] name Client name
+-- @params ...
+-- @return[type=table] Return cache instance
+function Cache:new(name, ...)
+  assert(type(config.ngx) == "table", "Parameter 'ngx' is required and should be a table!")
+
+  self.cache = cache
+
+  local cache = setmetatable({}, Cache)
+  self.__index = self
+
+  -- Binding for nrk/redis-lua
+  if 'redis-lua' == name then
+    cache.redis = require "redis"
+    cache.client = redis.connect(arg)
+  end
+
+  return cache
+end
+
 return Cache

@@ -1,8 +1,8 @@
 package = "lugate"
-version = "0.2.1-1"
+version = "0.3.0-1"
 source = {
   url = "git://github.com/zinovyev/lugate",
-  tag = "0.2.1",
+  tag = "0.3.0",
 }
 description = {
   summary = "Lua module for building JSON-RPC 2.0 Gateway APIs just inside of your Nginx",
@@ -16,6 +16,7 @@ description = {
 dependencies = {
   "lua >= 5.1",
   "rapidjson ~> 0.4",
+  "redis-lua ~> 2.0",
 }
 build = {
   type = "builtin",

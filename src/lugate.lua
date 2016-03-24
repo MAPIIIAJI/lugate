@@ -7,8 +7,11 @@
 -- @author Ivan Zinovyev <vanyazin@gmail.com>
 -- @license MIT
 
--- Request obeject
+--- Request factory
 local Request = require "lugate.request"
+
+--- Cache factory
+local Cache = require "lugate.cache"
 
 --- The lua gateway class definition
 local Lugate = {
@@ -36,7 +39,7 @@ function Lugate:new(config)
   -- Define services and configs
   lugate.ngx = config.ngx
   lugate.json = config.json
-  lugate.cache = config.cache
+  lugate.cache = config.cache and Cache:new(unpack(config.cache))
   lugate.routes = config.routes or {}
   lugate.req_num = {}
   lugate.responses = {}
