@@ -143,3 +143,83 @@ describe('Check that uri is created correctly', function()
     assert.equal('/', request:get_uri())
   end)
 end)
+
+describe("Check data and body builders", function()
+  local lugate = {
+    routes = {
+      ['^v2%..*'] = '/api/v2/'
+    },
+    json = require "rapidjson"
+  }
+
+  describe("Check a positive case", function()
+    local data = {
+      jsonrpc = '2.2',
+      method = 'method.name',
+      params = {
+        route = 'v2.method.name',
+        cache = false,
+        key = 'd88d8ds00-s',
+        params = { one = 1, two = 2 }
+      },
+      id = 1,
+    }
+    local request = Request:new(data, lugate)
+    local canonical_ngx_request = { '/api/v2/', { method = 8, body = '{"jsonrpc":"2.2","params":{"two":2,"one":1},"id":1,"method":"method.name"}' } }
+
+    it("Should provide a valid data table if the data is valid", function()
+      assert.are_same({ id = 1, jsonrpc = '2.2', method = 'method.name', params = { one = 1, two = 2 } },
+        request:get_data())
+    end)
+
+    it("Should provide a valid data table if the data is valid", function()
+      assert.not_nil(string.find(request:get_body(), '"jsonrpc":"2.2"'))
+      assert.not_nil(string.find(request:get_body(), '"id":1'))
+      assert.not_nil(string.find(request:get_body(), '"method":"method.name"'))
+      assert.not_nil(string.find(request:get_body(), '"params":{'))
+    end)
+
+    it("Should provide a valid ngx data table if the data is valid", function()
+      assert.equal(
+        canonical_ngx_request[1],
+        request:get_ngx_request()[1]
+      )
+      assert.equal(
+        canonical_ngx_request[2].method,
+        request:get_ngx_request()[2].method
+      )
+      assert.are_same(
+        lugate.json.decode(canonical_ngx_request[2].body),
+        lugate.json.decode(request:get_ngx_request()[2].body)
+      )
+    end)
+
+    it("Should provide a valid data table if the data is valid", function()
+      assert.are_same({ id = 1, jsonrpc = '2.2', method = 'method.name', params = { one = 1, two = 2 } },
+        request:get_data())
+    end)
+  end)
+
+  describe("Check a negative case", function()
+    local data = {}
+    local request = Request:new(data, lugate)
+
+    it("Should NOT provide a valid data table if the data is invalid", function()
+      assert.are_not_same({ id = 1, jsonrpc = '2.0', method = 'method.name', params = { one = 1, two = 2 } },
+        request:get_data())
+    end)
+
+    it("Should provide a valid data table if the data is valid", function()
+      assert.is_nil(string.find(request:get_body(), '"jsonrpc":"2.2"'))
+      assert.is_nil(string.find(request:get_body(), '"id":1'))
+      assert.is_nil(string.find(request:get_body(), '"method":"method.name"'))
+      assert.is_nil(string.find(request:get_body(), '"params":{"two":2,"one":1}'))
+    end)
+
+    it("Should NOT provide a valid data table if the data is invalid", function()
+      assert.are_not_same({ id = 1, jsonrpc = '2.2', method = 'method.name', params = { one = 1, two = 2 } },
+        request:get_data())
+    end)
+  end)
+
+end)
