@@ -125,7 +125,9 @@ describe('Check that uri is created correctly', function()
       id = 1,
     }
     local request = Request:new(data, lugate)
-    assert.equal('/api/v2/', request:get_uri())
+    local uri, err = request:get_uri()
+    assert.equal('/api/v2/', uri)
+    assert.is_nil(err)
   end)
   it("Should not provide a correct uri if the route doesn not match", function()
     local data = {
@@ -140,7 +142,9 @@ describe('Check that uri is created correctly', function()
       id = 1,
     }
     local request = Request:new(data, lugate)
-    assert.equal('/', request:get_uri())
+    local uri, err = request:get_uri()
+    assert.equal('Failed to bind the route', err)
+    assert.is_nil(uri)
   end)
 end)
 
