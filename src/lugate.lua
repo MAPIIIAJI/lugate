@@ -34,10 +34,11 @@ function Lugate:new(config)
   self.__index = self
 
   -- Define services and configs
+  local Cache = lugate:load_module(config.cache and config.cache.name or 'dummy', { dummy = "lugate.cache.cache", redis = "lugate.cache.redis" })
   lugate.ngx = config.ngx
   lugate.json = config.json
   lugate.routes = config.routes or {}
-  lugate.cache = lugate:load_module(config.cache or 'dummy', { dummy = "lugate.cache.cache", redis = "lugate.cache.redis" })
+  lugate.cache = Cache:new()
   lugate.req_dat = { num = {}, key = {}, exp = {} }
   lugate.responses = {}
 
@@ -49,16 +50,15 @@ end
 function Lugate:load_module(name, alternatives)
   assert(type(name) == "string", "Parameter 'name' is required and should be a string!")
   assert(type(alternatives) == "table", "Parameter 'alternatives' is required and should be a table!")
-
-  local aliases = ''
-  for alias, module in pairs(alternatives) do
-    if alias == name then
-      return require(module)
+    local aliases = ''
+    for alias, module in pairs(alternatives) do
+      if alias == name then
+        return require(module)
+      end
+      aliases = '' == aliases and alias or aliases .. "', '" .. alias
     end
-    aliases = '' == aliases and alias or aliases .. "', '" .. alias
-  end
 
-  error("Unknown module '" .. name .. "'. Available modules are: '" .. aliases .. "'")
+    error("Unknown module '" .. name .. "'. Available modules are: '" .. aliases .. "'")
 end
 
 --- Create new Lugate instance. Initialize ngx dependent properties
