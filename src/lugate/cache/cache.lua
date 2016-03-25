@@ -24,12 +24,10 @@ end
 
 --- Set value to cache
 function Cache:set(key, value, expire)
+  expire = expire or 3600
   assert(type(key) == "string", "Parameter 'key' is required and should be a string!")
-  assert(type(value) == "table", "Parameter 'value' is required and should be a table!")
-  assert(type(expire) == "integer", "Parameter 'expire' is required and should be a table!")
-
-  ngx.say(key, value, expire)
-  ngx.exit(ngx.HTTP_OK)
+  assert(type(value) == "string", "Parameter 'value' is required and should be a string!")
+  assert(type(expire) == "number", "Parameter 'expire' is required and should be a number!")
 
   self.memory[key] = value
   self.expire[key] = os.time() + expire
