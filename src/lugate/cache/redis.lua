@@ -7,8 +7,8 @@
 -- @author Ivan Zinovyev <vanyazin@gmail.com>
 -- @license MIT
 
-local Redis = {}
+local Cache = require "lugate.cache.cache"
 
-
+local Redis = setmetatable({}, Cache)
 
 return Redis
