@@ -7,10 +7,7 @@
 -- @author Ivan Zinovyev <vanyazin@gmail.com>
 -- @license MIT
 
--- Json encoder/decoder
-local json = require "rapidjson"
-
--- Request obeject
+--- Request factory
 local Request = require "lugate.request"
 
 --- The lua gateway class definition
@@ -26,107 +23,126 @@ local Lugate = {
 Lugate.HTTP_POST = 8
 
 --- Create new Lugate instance
--- @param[type=table] config Table of configuration options: body for raw request body and routes for routing map config
--- @return[type=Lugate] The new instance of Lugate
+-- @param [type=table] config Table of configuration options: body for raw request body and routes for routing map config
+-- @return [type=table] The new instance of Lugate
 function Lugate:new(config)
+  assert(type(config.ngx) == "table", "Parameter 'ngx' is required and should be a table!")
+  assert(type(config.json) == "table", "Parameter 'json' is required and should be a table!")
+
+  -- Define metatable
   local lugate = setmetatable({}, Lugate)
   self.__index = self
-  lugate:break_down()
-  lugate:configure(config)
+
+  -- Define services and configs
+  config.cache = config.cache or {'dummy'}
+  local cache = lugate:load_module(config.cache, { dummy = "lugate.cache.cache", redis = "lugate.cache.redis" })
+  lugate.ngx = config.ngx
+  lugate.json = config.json
+  lugate.routes = config.routes or {}
+  lugate.cache = cache
+  lugate.req_dat = { num = {}, key = {}, exp = {} }
+  lugate.responses = {}
 
   return lugate
 end
 
+--- Load module from the list of alternatives
+-- @return [type=table] Loaded module
+function Lugate:load_module(definition, alternatives)
+  local name = table.remove(definition, 1)
+  assert(type(name) == "string", "Parameter 'name' is required and should be a string!")
+  assert(type(alternatives) == "table", "Parameter 'alternatives' is required and should be a table!")
+    local aliases = ''
+    for alias, module in pairs(alternatives) do
+      if alias == name then
+        local class = require(module)
+        return class:new(unpack(definition))
+      end
+      aliases = '' == aliases and alias or aliases .. "', '" .. alias
+    end
+
+    error("Unknown module '" .. name .. "'. Available modules are: '" .. aliases .. "'")
+end
+
 --- Create new Lugate instance. Initialize ngx dependent properties
--- @param[type=table] config Table of configuration options: body for raw request body and routes for routing map config
--- @return[type=Lugate] The new instance of Lugate
+-- @param [type=table] config Table of configuration options: body for raw request body and routes for routing map config
+-- @return [type=table] The new instance of Lugate
 function Lugate:init(config)
+  -- Create new lugate instance
+  local lugate = self:new(config)
+
   -- Check request method
-  if 'POST' ~= ngx.req.get_method() then
-    ngx.say(Lugate.get_json_error(Lugate.ERR_INVALID_REQUEST, 'Only POST requests are allowed'))
-    ngx.exit(ngx.HTTP_OK)
+  if 'POST' ~= lugate.ngx.req.get_method() then
+    lugate.ngx.say(lugate:build_json_error(Lugate.ERR_INVALID_REQUEST, 'Only POST requests are allowed'))
+    lugate.ngx.exit(lugate.ngx.HTTP_OK)
   end
 
   -- Build config
-  config = config or {}
-  ngx.req.read_body() -- explicitly read the req body
-  config['body'] = ngx.req.get_body_data()
-
-  -- Create new lugate instance
-  local lugate = self:new(config)
+  lugate.ngx.req.read_body() -- explicitly read the req body
 
   return lugate
 end
 
 --- Get a proper formated json error
--- @param[type=int] code Error code
--- @param[type=string] message Error message
--- @return[type=string]
-function Lugate.get_json_error(code, message)
+-- @param [type=int] code Error code
+-- @param [type=string] message Error message
+-- @return [type=string]
+function Lugate:build_json_error(code, message, data, id)
   local messages = {
-    [Lugate['ERR_PARSE_ERROR']] = 'Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.',
-    [Lugate['ERR_INVALID_REQUEST']] = 'The JSON sent is not a valid Request object.',
-    [Lugate['ERR_METHOD_NOT_FOUND']] = 'The method does not exist / is not available.',
-    [Lugate['ERR_INVALID_PARAMS']] = 'Invalid method parameter(s).',
-    [Lugate['ERR_INTERNAL_ERROR']] = 'Internal JSON-RPC error.',
-    [Lugate['ERR_SERVER_ERROR']] = 'Server error',
+    [Lugate.ERR_PARSE_ERROR] = 'Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.',
+    [Lugate.ERR_INVALID_REQUEST] = 'The JSON sent is not a valid Request object.',
+    [Lugate.ERR_METHOD_NOT_FOUND] = 'The method does not exist / is not available.',
+    [Lugate.ERR_INVALID_PARAMS] = 'Invalid method parameter(s).',
+    [Lugate.ERR_INTERNAL_ERROR] = 'Internal JSON-RPC error.',
+    [Lugate.ERR_SERVER_ERROR] = 'Server error',
   }
   local code = messages[code] and code or Lugate.ERR_SERVER_ERROR
   local message = message or messages[code]
+  local data = data and self.json.encode(data) or 'null'
+  local id = id or 'null'
 
-  return '{"jsonrpc":"2.0","error":{"code":' .. tostring(code) .. ',"message":"' .. message .. '","data":[]},"id":null}'
+  return '{"jsonrpc":"2.0","error":{"code":' .. tostring(code) .. ',"message":"' .. message .. '","data":' .. data .. '},"id":' .. id .. '}'
 end
 
---- Configure lugate instance
--- @param[type=table] config Table of configuration options
-function Lugate:configure(config)
-  self.body = config.body
-  self.routes = config.routes or {}
-  self.responses = {}
-end
-
---- Check all dependencies are installed or break down on failure
--- @return[type=boolean]
-function Lugate:break_down()
-  -- Check that mandatory modules are installed
-  local modules = {
-    'ngx',
-    'rapidjson',
-  }
-  for _, module in ipairs(modules) do
-    if not package.loaded[module] then
-      error("Module '" .. module .. "' is required!")
-    end
+--- Get ngx request body
+-- @return [type=string]
+function Lugate:get_body()
+  if not self.body then
+    self.body = self.ngx.req and self.ngx.req.get_body_data() or ''
   end
 
-  return true
+  return self.body
 end
 
 --- Parse raw body
--- @return[type=table]
+-- @return [type=table]
 function Lugate:get_data()
   if not self.data then
-    self.data = self.body and json.decode(self.body) or {}
+    self.data = self:get_body() and self.json.decode(self.body) or {}
   end
 
   return self.data
 end
 
+--- Check if request is a batch
+-- @param [type=table] data Decoded request body
+-- @return [type=boolean]
+function Lugate:is_batch(data)
+  return data and data[1] and ('table' == type(data[1])) and true or false
+end
+
 --- Get request collection
--- @return[type=table] The table of requests
+-- @return [type=table] The table of requests
 function Lugate:get_requests()
   if not self.requests then
     self.requests = {}
     local data = self:get_data()
     if self:is_batch(data) then
       for _, rdata in ipairs(data) do
-        table.insert(self.requests, Request:new(rdata, self.routes))
+        table.insert(self.requests, Request:new(rdata, self))
       end
     else
-      local request = Request:new(data, self.routes)
-      if request.is_valid then
-        table.insert(self.requests, request)
-      end
+      table.insert(self.requests, Request:new(data, self))
     end
   end
 
@@ -134,39 +150,50 @@ function Lugate:get_requests()
 end
 
 --- Get request collection prepared for ngx.location.capture_multi call
--- @return[type=table] The table of requests
+-- @return [type=table] The table of requests
 function Lugate:run()
   -- Loop requests
   local ngx_requests = {}
-  for _, request in ipairs(self:get_requests()) do
-    if request:is_valid() then
-      table.insert(ngx_requests,request:get_ngx_request())
+  for i, request in ipairs(self:get_requests()) do
+    if request:get_key() and self.cache:get(request:get_key()) then
+      self.responses[i] = self.cache:get(request:get_key())
+    elseif request:is_valid() then
+      local req, err = request:get_ngx_request()
+      if req then
+        table.insert(ngx_requests, req)
+        self.req_dat.num[#ngx_requests] = i
+        self.req_dat.key[#ngx_requests] = request:get_key()
+        self.req_dat.exp[#ngx_requests] = request:get_cache()
+      else
+        self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_SERVER_ERROR, err, request:get_body(), request:get_id()))
+      end
     else
-      ngx.say(self.get_json_error(Lugate.ERR_PARSE_ERROR))
-      ngx.exit(ngx.HTTP_OK)
+      self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_PARSE_ERROR, nil, request:get_body(), request:get_id()))
     end
   end
 
   -- Send multi requst and get multi response
-  local responses = {ngx.location.capture_multi(ngx_requests)}
-  for _, response in ipairs(responses) do
-    self:add_response(response)
+  if #ngx_requests > 0 then
+    local responses = { ngx.location.capture_multi(ngx_requests) }
+    for n, response in ipairs(responses) do
+      self.responses[self.req_dat.num[n]] = self:clean_response(response)
+      -- Store to cache
+      if self.req_dat.key[n] and not self.cache:get(self.req_dat.key[n]) then
+        self.cache:set(self.req_dat.key[n], self.responses[self.req_dat.num[n]], self.req_dat.exp[n])
+      end
+    end
   end
 
-  return responses
+  return self.responses
 end
 
---- Add new response
-function Lugate:add_response(response)
-  if 200 == response.status then
-    local response_body = string.gsub(response.body, '%s$', '')
-    response_body = string.gsub(response_body, '^%s', '')
-    table.insert(self.responses, response_body)
-    
-  else
-    ngx.say(self.get_json_error(Lugate.ERR_INTERNAL_ERROR))
-    ngx.exit(ngx.HTTP_OK)
-  end
+--- Clean response
+function Lugate:clean_response(response)
+  local response_body = response.body or response
+  response_body = string.gsub(response_body, '%s$', '')
+  response_body = string.gsub(response_body, '^%s', '')
+
+  return response_body
 end
 
 --- Print all responses and exit
@@ -178,13 +205,6 @@ function Lugate:print_responses()
   end
 
   ngx.exit(ngx.HTTP_OK)
-end
-
---- Check if request is a batch
--- @param[type=table] data Decoded request body
--- @return[type=boolean]
-function Lugate:is_batch(data)
-  return data and data[1] and ('table' == type(data[1]))
 end
 
 return Lugate

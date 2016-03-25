@@ -39,7 +39,8 @@
 <h2>Classes</h2>
 <ul class="$(kind=='Topics' and '' or 'nowrap'">
   <li><strong>lugate</strong></li>
-  <li><a href="../classes/request.html">request</a></li>
+  <li><a href="../classes/lugate.cache.html">lugate.cache</a></li>
+  <li><a href="../classes/lugate.request.html">lugate.request</a></li>
 </ul>
 
 </div>
@@ -62,28 +63,28 @@
 <h2><a href="#Functions">Functions</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#Lugate:new">Lugate:new (config)</a></td>
+	<td class="name" nowrap><a href="#Lugate:new">Lugate:new (t)</a></td>
 	<td class="summary">Create new Lugate instance</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Lugate:init">Lugate:init (config)</a></td>
+	<td class="name" nowrap><a href="#Lugate:init">Lugate:init (t)</a></td>
 	<td class="summary">Create new Lugate instance.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Lugate.get_json_error">Lugate.get_json_error (code, message)</a></td>
+	<td class="name" nowrap><a href="#Lugate:build_json_error">Lugate:build_json_error (t, t)</a></td>
 	<td class="summary">Get a proper formated json error</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Lugate:configure">Lugate:configure (config)</a></td>
-	<td class="summary">Configure lugate instance</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Lugate:break_down">Lugate:break_down ()</a></td>
-	<td class="summary">Check all dependencies are installed or break down on failure</td>
+	<td class="name" nowrap><a href="#Lugate:get_body">Lugate:get_body ()</a></td>
+	<td class="summary">Get ngx request body</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Lugate:get_data">Lugate:get_data ()</a></td>
 	<td class="summary">Parse raw body</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#Lugate:is_batch">Lugate:is_batch (t)</a></td>
+	<td class="summary">Check if request is a batch</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Lugate:get_requests">Lugate:get_requests ()</a></td>
@@ -94,16 +95,12 @@
 	<td class="summary">Get request collection prepared for ngx.location.capture_multi call</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#Lugate:add_response">Lugate:add_response (response)</a></td>
+	<td class="name" nowrap><a href="#Lugate:add_response">Lugate:add_response (num, response, as_is)</a></td>
 	<td class="summary">Add new response</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#Lugate:print_responses">Lugate:print_responses ()</a></td>
 	<td class="summary">Print all responses and exit</td>
-	</tr>
-	<tr>
-	<td class="name" nowrap><a href="#Lugate:is_batch">Lugate:is_batch (data)</a></td>
-	<td class="summary">Check if request is a batch</td>
 	</tr>
 </table>
 
@@ -116,7 +113,7 @@
     <dl class="function">
     <dt>
     <a name = "Lugate:new"></a>
-    <strong>Lugate:new (config)</strong>
+    <strong>Lugate:new (t)</strong>
     </dt>
     <dd>
     Create new Lugate instance
@@ -124,17 +121,15 @@
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">config</span>
-            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-         Table of configuration options: body for raw request body and routes for routing map config
+        <li><span class="parameter">t</span>
+         y p e = t a b l e ] config Table of configuration options: body for raw request body and routes for routing map config
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
 
-           <span class="types"><span class="type">Lugate</span></span>
-        The new instance of Lugate
+        [ t y p e = L u g a t e ] The new instance of Lugate
     </ol>
 
 
@@ -143,7 +138,7 @@
 </dd>
     <dt>
     <a name = "Lugate:init"></a>
-    <strong>Lugate:init (config)</strong>
+    <strong>Lugate:init (t)</strong>
     </dt>
     <dd>
     Create new Lugate instance.  Initialize ngx dependent properties
@@ -151,17 +146,15 @@
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">config</span>
-            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-         Table of configuration options: body for raw request body and routes for routing map config
+        <li><span class="parameter">t</span>
+         y p e = t a b l e ] config Table of configuration options: body for raw request body and routes for routing map config
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
 
-           <span class="types"><span class="type">Lugate</span></span>
-        The new instance of Lugate
+        [ t y p e = L u g a t e ] The new instance of Lugate
     </ol>
 
 
@@ -169,8 +162,8 @@
 
 </dd>
     <dt>
-    <a name = "Lugate.get_json_error"></a>
-    <strong>Lugate.get_json_error (code, message)</strong>
+    <a name = "Lugate:build_json_error"></a>
+    <strong>Lugate:build_json_error (t, t)</strong>
     </dt>
     <dd>
     Get a proper formated json error
@@ -178,21 +171,18 @@
 
     <h3>Parameters:</h3>
     <ul>
-        <li><span class="parameter">code</span>
-            <span class="types"><span class="type">int</span></span>
-         Error code
+        <li><span class="parameter">t</span>
+         y p e = s t r i n g ] message Error message
         </li>
-        <li><span class="parameter">message</span>
-            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-         Error message
+        <li><span class="parameter">t</span>
+         y p e = s t r i n g ] message Error message
         </li>
     </ul>
 
     <h3>Returns:</h3>
     <ol>
 
-           <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
-
+        [ t y p e = s t r i n g ]
     </ol>
 
 
@@ -200,40 +190,18 @@
 
 </dd>
     <dt>
-    <a name = "Lugate:configure"></a>
-    <strong>Lugate:configure (config)</strong>
+    <a name = "Lugate:get_body"></a>
+    <strong>Lugate:get_body ()</strong>
     </dt>
     <dd>
-    Configure lugate instance
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">config</span>
-            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-         Table of configuration options
-        </li>
-    </ul>
-
-
-
-
-
-</dd>
-    <dt>
-    <a name = "Lugate:break_down"></a>
-    <strong>Lugate:break_down ()</strong>
-    </dt>
-    <dd>
-    Check all dependencies are installed or break down on failure
+    Get ngx request body
 
 
 
     <h3>Returns:</h3>
     <ol>
 
-           <span class="types"><span class="type">boolean</span></span>
-
+        [ t y p e = s t r i n g ]
     </ol>
 
 
@@ -252,8 +220,32 @@
     <h3>Returns:</h3>
     <ol>
 
-           <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+        [ t y p e = t a b l e ]
+    </ol>
 
+
+
+
+</dd>
+    <dt>
+    <a name = "Lugate:is_batch"></a>
+    <strong>Lugate:is_batch (t)</strong>
+    </dt>
+    <dd>
+    Check if request is a batch
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">t</span>
+         y p e = t a b l e ] data Decoded request body
+        </li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+        [ t y p e = b o o l e a n ]
     </ol>
 
 
@@ -272,8 +264,7 @@
     <h3>Returns:</h3>
     <ol>
 
-           <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-        The table of requests
+        [ t y p e = t a b l e ] The table of requests
     </ol>
 
 
@@ -292,8 +283,7 @@
     <h3>Returns:</h3>
     <ol>
 
-           <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-        The table of requests
+        [ t y p e = t a b l e ] The table of requests
     </ol>
 
 
@@ -302,7 +292,7 @@
 </dd>
     <dt>
     <a name = "Lugate:add_response"></a>
-    <strong>Lugate:add_response (response)</strong>
+    <strong>Lugate:add_response (num, response, as_is)</strong>
     </dt>
     <dd>
     Add new response
@@ -310,7 +300,13 @@
 
     <h3>Parameters:</h3>
     <ul>
+        <li><span class="parameter">num</span>
+
+        </li>
         <li><span class="parameter">response</span>
+
+        </li>
+        <li><span class="parameter">as_is</span>
 
         </li>
     </ul>
@@ -334,33 +330,6 @@
 
 
 </dd>
-    <dt>
-    <a name = "Lugate:is_batch"></a>
-    <strong>Lugate:is_batch (data)</strong>
-    </dt>
-    <dd>
-    Check if request is a batch
-
-
-    <h3>Parameters:</h3>
-    <ul>
-        <li><span class="parameter">data</span>
-            <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-         Decoded request body
-        </li>
-    </ul>
-
-    <h3>Returns:</h3>
-    <ol>
-
-           <span class="types"><span class="type">boolean</span></span>
-
-    </ol>
-
-
-
-
-</dd>
 </dl>
 
 
@@ -368,7 +337,7 @@
 </div> <!-- id="main" -->
 <div id="about">
 <i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.3</a></i>
-<i style="float:right;">Last updated 2016-03-22 10:15:48 </i>
+<i style="float:right;">Last updated 2016-03-24 13:21:51 </i>
 </div> <!-- id="about" -->
 </div> <!-- id="container" -->
 </body>

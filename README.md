@@ -26,12 +26,15 @@ luarocks install lugate
               local Lugate = require "lugate"
 
               -- Get new lugate instance
-              local lugate = Lugate:init({
-                routes = {
-                  ['v1%.([^%.]+).*'] = '/v1.%1', -- v1.math.subtract -> /v1.math
-                  ['v2%.([^%.]+).*'] = '/v2.%1', -- v2.math.addition -> /v2.math
-                }
-              })
+                  local lugate = Lugate:init({
+                    json = require "rapidjson",
+                    ngx = ngx,
+                    cache = {'redis', '127.0.0.1', 6379},
+                    routes = {
+                      ['v1%.([^%.]+).*'] = '/v1', -- v1.math.subtract -> /v1.math
+                      ['v2%.([^%.]+).*'] = '/v2', -- v2.math.addition -> /v2.math
+                    }
+                  })
 
               -- Send multi requst and get multi response
               lugate:run()
