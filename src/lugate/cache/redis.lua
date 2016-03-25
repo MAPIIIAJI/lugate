@@ -21,10 +21,7 @@ function Redis:new(...)
 
   self.__index = self
   redis.lredis = require 'redis'
-  redis.client = lredis.connect(unpack(arg))
---  local response = client:ping()
---  ngx.say(response)
---  ngx.exit(ngx.HTTP_OK)
+  redis.client = redis.lredis.connect(unpack(arg))
 
   return redis
 end
@@ -35,14 +32,14 @@ function Redis:set(key, value, expire)
   assert(type(key) == "string", "Parameter 'key' is required and should be a string!")
   assert(type(value) == "string", "Parameter 'value' is required and should be a string!")
   assert(type(expire) == "number", "Parameter 'expire' is required and should be a number!")
-  self.client:set(key, value, expire)
+  self.client:set(key, value)
 
 end
 
 --- Get value from cache
 -- @return[type=string]
 function Redis:get(key)
-  return nil
+  return self.client:get(key)
 end
 
 return Redis
