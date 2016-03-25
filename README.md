@@ -46,22 +46,23 @@ luarocks install lugate
 ```
 
 ## Lugate proxy call
-Lugate brings its own protocol for transferring some additional logic over JSON-RPC 2.0 request to live. It adds
-some additional capabilities for routing and caching.
-The *params* member of the [request object](http://www.jsonrpc.org/specification#request_object) gets some additional mandatory members:
+Lugate brings its own protocol called "Lugate proxy call" to live.
+It is  used for transferring routing and cache control logic over
+JSON-RPC 2.0 request.
+The *params* member of the [request object](http://www.jsonrpc.org/specification#request_object)
+is exteded with additional nested member fields:
 
-* **route** - fo the routing note
-* **cache** - for the caching lifetime
-* **key** - the cache key
-* **params** - the regular array of parameter values
+* **route** - The routing destination
+* **cache** - Cache life time
+* **key** - Chache key
+* **params** - The regular array of parameter values should be moved here for now
 
-After the request is processed by the Lugate module, the **route** and **cache** values are removed from the
-*params* member and the **params** value is expanded to fill the whole *params* field.
+When the request is processed by the lugate proxy, the **route** and **cache** values are removed from the
+*params* member and the nested **params** value is expanded to fill the whole parent *params* field.
 
 ```json
 --> {"jsonrpc": "2.0", "method": "subtract", "params": {"cache":3600, "key": "foobar", "route": "v2.substract", "params": [42, 23]}, "id": 1}
 <-- {"jsonrpc": "2.0", "result": -19, "id": 2}
-
 ```
 
 ## API reference
