@@ -34,11 +34,12 @@ function Lugate:new(config)
   self.__index = self
 
   -- Define services and configs
-  local Cache = lugate:load_module(config.cache and config.cache.name or 'dummy', { dummy = "lugate.cache.cache", redis = "lugate.cache.redis" })
+  config.cache = config.cache or {'dummy'}
+  local cache = lugate:load_module(config.cache, { dummy = "lugate.cache.cache", redis = "lugate.cache.redis" })
   lugate.ngx = config.ngx
   lugate.json = config.json
   lugate.routes = config.routes or {}
-  lugate.cache = Cache:new()
+  lugate.cache = cache
   lugate.req_dat = { num = {}, key = {}, exp = {} }
   lugate.responses = {}
 
@@ -47,13 +48,15 @@ end
 
 --- Load module from the list of alternatives
 -- @return [type=table] Loaded module
-function Lugate:load_module(name, alternatives)
+function Lugate:load_module(definition, alternatives)
+  local name = table.remove(definition, 1)
   assert(type(name) == "string", "Parameter 'name' is required and should be a string!")
   assert(type(alternatives) == "table", "Parameter 'alternatives' is required and should be a table!")
     local aliases = ''
     for alias, module in pairs(alternatives) do
       if alias == name then
-        return require(module)
+        local factory = require(module)
+        return factory:new(unpack(definition))
       end
       aliases = '' == aliases and alias or aliases .. "', '" .. alias
     end
