@@ -178,7 +178,7 @@ function Lugate:run()
     for n, response in ipairs(responses) do
       self.responses[self.req_dat.num[n]] = self:clean_response(response)
       -- Store to cache
-      if self.req_dat.key[n] then
+      if self.req_dat.key[n] and not self.cache:get(self.req_dat.key[n]) then
         self.cache:set(self.req_dat.key[n], self.responses[self.req_dat.num[n]], self.req_dat.exp[n])
       end
     end

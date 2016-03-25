@@ -33,7 +33,7 @@ function Redis:set(key, value, expire)
   assert(type(value) == "string", "Parameter 'value' is required and should be a string!")
   assert(type(expire) == "number", "Parameter 'expire' is required and should be a number!")
   self.client:set(key, value)
-
+  self.client:expire(key, expire)
 end
 
 --- Get value from cache
