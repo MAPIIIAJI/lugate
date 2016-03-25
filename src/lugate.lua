@@ -176,7 +176,7 @@ function Lugate:run()
       self.responses[self.req_dat.num[n]] = self:clean_response(response)
       -- Store to cache
       if self.req_dat.key[n] then
-        self.cache.set(self.req_dat.key[n], self.responses[self.req_dat.num[n]], self.req_dat.exp[n])
+        self.cache:set(self.req_dat.key[n], self.responses[self.req_dat.num[n]], self.req_dat.exp[n])
       end
     end
   end
