@@ -5,10 +5,10 @@ source = {
   tag = "0.3.0",
 }
 description = {
-  summary = "Lua module for building JSON-RPC 2.0 Gateway APIs just inside of your Nginx",
+  summary = "A library for building JSON-RPC 2.0 Gateway API just inside of your NGINX configuration file",
   detailed = [[
-        Lua module for building JSON-RPC 2.0 Gateway APIs just inside of your Nginx.
-        The package is meant to be used with 'openresty/lua-nginx-module' Nginx module.
+      Lugate is a binding over OpenResty Lua NGINX module.
+      This library provides parsing, validating and routing features for JSON-RPC 2.0 protocol.
     ]],
   homepage = "http://github.com/zinovyev/lugate",
   license = "MIT",
