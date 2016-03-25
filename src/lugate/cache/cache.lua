@@ -13,11 +13,11 @@ local Cache = {}
 -- @params[type=string] name Client name
 -- @params ...
 -- @return[type=table] Return cache instance
-function Cache:new()
-  local cache = setmetatable({}, Cache)
+function Cache:new(...)
+  local cache = setmetatable({}, self)
   self.__index = self
-  self.memory = {}
-  self.expire = {}
+  cache.memory = {}
+  cache.expire = {}
 
   return cache
 end
@@ -34,6 +34,7 @@ function Cache:set(key, value, expire)
 end
 
 --- Get value from cache
+-- @return[type=string]
 function Cache:get(key)
   if self.expire[key] and self.expire[key] > os.time() then
     return self.memory[key]

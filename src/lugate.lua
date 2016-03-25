@@ -55,8 +55,8 @@ function Lugate:load_module(definition, alternatives)
     local aliases = ''
     for alias, module in pairs(alternatives) do
       if alias == name then
-        local factory = require(module)
-        return factory:new(unpack(definition))
+        local class = require(module)
+        return class:new(unpack(definition))
       end
       aliases = '' == aliases and alias or aliases .. "', '" .. alias
     end

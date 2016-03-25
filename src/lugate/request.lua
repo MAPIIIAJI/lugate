@@ -25,6 +25,8 @@ function Request:new(data, lugate)
   self.__index = self
   request.lugate = lugate
   request.data = data
+  request.expire = {}
+  request.memory = {}
 
   return request
 end
