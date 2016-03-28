@@ -110,7 +110,8 @@ describe('Check that uri is created correctly', function()
   local lugate = {
     routes = {
       ['^v2%..*'] = '/api/v2/'
-    }
+    },
+    json = require "rapidjson"
   }
   it("Should provide a correct uri if route matches", function()
     local data = {

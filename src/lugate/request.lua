@@ -127,7 +127,7 @@ end
 --- Get request body
 -- @return[type=string] Json array
 function Request:get_body()
-  return self.lugate.encode(self:get_data())
+  return self.lugate.json.encode(self:get_data())
 end
 
 --- Build a request in format acceptable by nginx
