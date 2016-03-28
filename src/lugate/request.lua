@@ -7,9 +7,6 @@
 -- @author Ivan Zinovyev <vanyazin@gmail.com>
 -- @license MIT
 
---- Json encoder/decoder
-local json = require "rapidjson"
-
 --- Request obeject
 local Request = {}
 
@@ -130,7 +127,7 @@ end
 --- Get request body
 -- @return[type=string] Json array
 function Request:get_body()
-  return json.encode(self:get_data())
+  return self.lugate.encode(self:get_data())
 end
 
 --- Build a request in format acceptable by nginx
