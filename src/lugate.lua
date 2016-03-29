@@ -50,7 +50,7 @@ function Lugate:new(config)
   lugate.json = config.json
   lugate.routes = config.routes or {}
   lugate.cache = cache
-  lugate.req_dat = { num = {}, key = {}, exp = {} }
+  lugate.req_dat = { num = {}, key = {}, ttl = {} }
   lugate.responses = {}
 
   return lugate
