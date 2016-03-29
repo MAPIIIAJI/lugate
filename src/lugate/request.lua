@@ -91,20 +91,26 @@ end
 
 --- Get request cache time
 -- @return[type=string]
-function Request:get_cache()
-  return self:is_proxy_call() and self.data.params.cache or false
-end
+--function Request:get_cache()
+--  return self:is_proxy_call() and self.data.params.cache or false
+--end
 
 --- Get request cache key
 -- @return[type=string]
 function Request:get_ttl()
-  return self:get_cache() and self.data.params.cache.ttl or false
+  return self.data.params.cache and self.data.params.cache.ttl or false
 end
 
 --- Get request cache key
 -- @return[type=string]
 function Request:get_key()
-  return self:get_cache() and self.data.params.cache.key or false
+  return self.data.params.cache and self.data.params.cache.key or false
+end
+
+--- Check if request is cachable
+-- @return[type=boolean]
+function Request:is_cachable()
+  return self:get_ttl() and self:get_key()
 end
 
 --- Get which uri is passing for request data

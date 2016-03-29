@@ -132,8 +132,10 @@ describe('Check that uri is created correctly', function()
       method = 'method.name',
       params = {
         route = 'v2.method.name',
-        cache = false,
-        key = 'd88d8ds00-s',
+        cache = {
+          ttl = false,
+          key = 'd88d8ds00-s',
+        },
         params = { one = 1, two = 2 }
       },
       id = 1,
@@ -149,8 +151,10 @@ describe('Check that uri is created correctly', function()
       method = 'method.name',
       params = {
         route = 'v1.method.name',
-        cache = false,
-        key = 'd88d8ds00-s',
+        cache = {
+          ttl = false,
+          key = 'd88d8ds00-s',
+        },
         params = { one = 1, two = 2 }
       },
       id = 1,
@@ -176,8 +180,10 @@ describe("Check data and body builders", function()
       method = 'method.name',
       params = {
         route = 'v2.method.name',
-        cache = false,
-        key = 'd88d8ds00-s',
+        cache = {
+          ttl = false,
+          key = 'd88d8ds00-s',
+        },
         params = { one = 1, two = 2 }
       },
       id = 1,

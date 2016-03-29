@@ -98,7 +98,7 @@ function Lugate:build_json_error(code, message, data, id)
     [Lugate.ERR_INTERNAL_ERROR] = 'Internal JSON-RPC error.',
     [Lugate.ERR_SERVER_ERROR] = 'Server error',
     [Lugate.ERR_EMPTY_REQUEST] = 'Empty request.',
-    [Lugate.ERR_INVALID_PROXY_CALL] = 'Invalid proxy call',
+    [Lugate.ERR_INVALID_PROXY_CALL] = 'Invalid proxy call.',
   }
   local code = messages[code] and code or Lugate.ERR_SERVER_ERROR
   local message = message or messages[code]
@@ -159,7 +159,7 @@ function Lugate:run()
   -- Loop requests
   local ngx_requests = {}
   for i, request in ipairs(self:get_requests()) do
-    if request:get_key() and self.cache:get(request:get_key()) then
+    if request:is_cachable() and self.cache:get(request:get_key()) then
       self.responses[i] = self.cache:get(request:get_key())
     elseif request:is_empty() then
       self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_EMPTY_REQUEST, nil, nil))
