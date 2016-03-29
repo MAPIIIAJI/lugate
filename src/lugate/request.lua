@@ -30,7 +30,7 @@ end
 -- @return[type=boolean]
 function Request:is_valid()
   if nil == self.valid then
-    self.valid = self.data
+    self.valid = not self:is_empty()
       and self.data.jsonrpc
       and self.data.method
       and true or false
@@ -89,12 +89,6 @@ function Request:get_route()
   return self:is_proxy_call() and self.data.params.route or nil
 end
 
---- Get request cache time
--- @return[type=string]
---function Request:get_cache()
---  return self:is_proxy_call() and self.data.params.cache or false
---end
-
 --- Get request cache key
 -- @return[type=string]
 function Request:get_ttl()
@@ -110,7 +104,7 @@ end
 --- Check if request is cachable
 -- @return[type=boolean]
 function Request:is_cachable()
-  return self:get_ttl() and self:get_key()
+  return self:get_ttl() and self:get_key() and true or false
 end
 
 --- Get which uri is passing for request data

@@ -35,6 +35,28 @@ describe("Check request validation", function()
     assert.is_true(request:is_empty())
   end)
 
+  it("Request should be cachable if ttl and key are given", function()
+    local request1 = Request:new({ params = { cache = { key = 'foo', ttl = 123 } } }, {})
+    assert.is_true(request1:is_cachable())
+
+    local request2 = Request:new({ params = { cache = { key = 'foo', ttl = 0 } } }, {})
+    assert.is_true(request2:is_cachable())
+  end)
+
+  it("Request should NOT be cachable if ttl or key are nil", function()
+    local request1 = Request:new({ params = { key = 'foo' } }, {})
+    assert.is_false(request1:is_cachable())
+
+    local request2 = Request:new({ params = { ttl = 123 } }, {})
+    assert.is_false(request2:is_cachable())
+
+    local request3 = Request:new({ params = { ttl = false } }, {})
+    assert.is_false(request3:is_cachable())
+
+    local request4 = Request:new({ params = { ttl = false } }, {})
+    assert.is_false(request4:is_cachable())
+  end)
+
   it("Request should be valid if jsonrpc version and method are provided", function()
     local request = Request:new({ jsonrpc = '2.0', method = 'foo.bar' }, {})
     assert.is_true(request:is_valid())
