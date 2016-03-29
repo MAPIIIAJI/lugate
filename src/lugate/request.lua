@@ -22,8 +22,6 @@ function Request:new(data, lugate)
   self.__index = self
   request.lugate = lugate
   request.data = data
-  request.expire = {}
-  request.memory = {}
 
   return request
 end
@@ -33,8 +31,8 @@ end
 function Request:is_valid()
   if nil == self.valid then
     self.valid = self.data
-      and self.data['jsonrpc']
-      and self.data['method']
+      and self.data.jsonrpc
+      and self.data.method
       and true or false
   end
 
@@ -53,8 +51,8 @@ end
 function Request:is_proxy_call()
   if nil == self.proxy_call then
     self.proxy_call = self:is_valid()
-      and self.data['params']['route']
-      and self.data['params']
+      and self.data.params
+      and self.data.params.route
       and true or false
   end
 
@@ -99,8 +97,14 @@ end
 
 --- Get request cache key
 -- @return[type=string]
+function Request:get_ttl()
+  return self:get_cache() and self.data.params.cache.ttl or false
+end
+
+--- Get request cache key
+-- @return[type=string]
 function Request:get_key()
-  return self:is_proxy_call() and self.data.params.key or false
+  return self:get_cache() and self.data.params.cache.key or false
 end
 
 --- Get which uri is passing for request data

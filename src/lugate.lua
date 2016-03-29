@@ -37,7 +37,7 @@ function Lugate:new(config)
 
   -- Define services and configs
   config.cache = config.cache or {'dummy'}
-  local cache = lugate:load_module(config.cache, { dummy = "lugate.cache.cache", redis = "lugate.cache.redis" })
+  local cache = lugate:load_module(config.cache, { dummy = "lugate.cache.dummy", redis = "lugate.cache.redis" })
   lugate.ngx = config.ngx
   lugate.json = config.json
   lugate.routes = config.routes or {}
@@ -169,7 +169,7 @@ function Lugate:run()
         table.insert(ngx_requests, req)
         self.req_dat.num[#ngx_requests] = i
         self.req_dat.key[#ngx_requests] = request:get_key()
-        self.req_dat.exp[#ngx_requests] = request:get_cache()
+        self.req_dat.ttl[#ngx_requests] = request:get_ttl()
       else
         self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_SERVER_ERROR, err, request:get_body(), request:get_id()))
       end
@@ -187,7 +187,7 @@ function Lugate:run()
       self.responses[self.req_dat.num[n]] = self:clean_response(response)
       -- Store to cache
       if self.req_dat.key[n] and not self.cache:get(self.req_dat.key[n]) then
-        self.cache:set(self.req_dat.key[n], self.responses[self.req_dat.num[n]], self.req_dat.exp[n])
+        self.cache:set(self.req_dat.key[n], self.responses[self.req_dat.num[n]], self.req_dat.ttl[n])
       end
     end
   end

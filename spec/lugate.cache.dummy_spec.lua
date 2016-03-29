@@ -1,8 +1,8 @@
 -- Load the module
-local Cache = dofile("./src/lugate/cache/cache.lua")
+local Dummy = dofile("./src/lugate/cache/dummy.lua")
 
 describe("Check dummy cache setter and getter", function()
-  local cache = Cache:new();
+  local cache = Dummy:new();
   cache:set('FOO', 'BAR', 0.5)
   math.randomseed(1234)
 

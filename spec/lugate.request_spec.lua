@@ -106,13 +106,15 @@ describe("Check request params are parsed correctly", function()
       method = 'method.name',
       params = {
         route = 'v1.method.name',
-        cache = false,
-        key = 'd88d8ds00-s',
+        cache = {
+          ttl = false,
+          key = 'd88d8ds00-s',
+        },
         params = { one = 1, two = 2 }
       }
     }, {})
     assert.equal('v1.method.name', request:get_route())
-    assert.equal(false, request:get_cache())
+    assert.equal(false, request:get_ttl())
     assert.equal('d88d8ds00-s', request:get_key())
   end)
 end)

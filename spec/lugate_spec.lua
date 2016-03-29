@@ -26,7 +26,7 @@ end)
 describe("Check how the module is loaded", function()
   it("Should be able to load a module", function()
     local lugate = Lugate:new({ ngx = {}, json = {} })
-    local json = lugate:load_module({"dummy"}, { dummy = "lugate.cache.cache", rapidjson = "rapidjson", cjson = "lua-cjson" })
+    local json = lugate:load_module({"dummy"}, { dummy = "lugate.cache.dummy", rapidjson = "rapidjson", cjson = "lua-cjson" })
     assert.is_table(json)
 
     assert.has_error(function()
