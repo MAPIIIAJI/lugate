@@ -159,8 +159,8 @@ function Lugate:run()
   for i, request in ipairs(self:get_requests()) do
     if request:get_key() and self.cache:get(request:get_key()) then
       self.responses[i] = self.cache:get(request:get_key())
-    elseif request:is_empty() then
-      self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_INVALID_PROXY_CALL, nil, request:get_body(), request:get_id()))
+    elseif not request:is_proxy_call() then
+      self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_INVALID_PROXY_CALL, nil, request:get_body()))
     elseif request:is_valid() then
       local req, err = request:get_ngx_request()
       if req then
