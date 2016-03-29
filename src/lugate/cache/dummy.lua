@@ -3,16 +3,16 @@
 -- Lugate is a lua module for building JSON-RPC 2.0 Gateway APIs just inside of your Nginx configuration file.
 -- Lugate is meant to be used with [ngx\_http\_lua\_module](https://github.com/openresty/lua-nginx-module) together.
 --
--- @classmod lugate.cache.dummy Dummy cache
+-- @classmod lugate.cache.dummy
 -- @author Ivan Zinovyev <vanyazin@gmail.com>
 -- @license MIT
 
 local Cache = require 'lugate.cache.cache'
+
 local Dummy = setmetatable({}, {__index=Cache})
 
 --- Create new cache instance
--- @params[type=string] name Client name
--- @params ...
+-- @param ...
 -- @return[type=table] Return cache instance
 function Dummy:new(...)
   local arg = {...}
@@ -26,6 +26,9 @@ function Dummy:new(...)
 end
 
 --- Set value to cache
+-- @param[type=string] key
+-- @param[type=string] value
+-- @param[type=number] ttl
 function Dummy:set(key, value, ttl)
   ttl = ttl or 3600
   assert(type(key) == "string", "Parameter 'key' is required and should be a string!")
@@ -37,6 +40,7 @@ function Dummy:set(key, value, ttl)
 end
 
 --- Get value from cache
+-- @param[type=string] key
 -- @return[type=string]
 function Dummy:get(key)
   if self.expire[key] and self.expire[key] > os.time() then

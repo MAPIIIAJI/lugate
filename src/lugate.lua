@@ -25,8 +25,8 @@ local Lugate = {
 Lugate.HTTP_POST = 8
 
 --- Create new Lugate instance
--- @param [type=table] config Table of configuration options: body for raw request body and routes for routing map config
--- @return [type=table] The new instance of Lugate
+-- @param[type=table] config Table of configuration options: body for raw request body and routes for routing map config
+-- @return[type=table] The new instance of Lugate
 function Lugate:new(config)
   config.pre = config.pre or function() end
   config.post = config.post or function() end
@@ -57,7 +57,7 @@ function Lugate:new(config)
 end
 
 --- Load module from the list of alternatives
--- @return [type=table] Loaded module
+-- @return[type=table] Loaded module
 function Lugate:load_module(definition, alternatives)
   local name = table.remove(definition, 1)
   assert(type(name) == "string", "Parameter 'name' is required and should be a string!")
@@ -75,8 +75,8 @@ function Lugate:load_module(definition, alternatives)
 end
 
 --- Create new Lugate instance. Initialize ngx dependent properties
--- @param [type=table] config Table of configuration options: body for raw request body and routes for routing map config
--- @return [type=table] The new instance of Lugate
+-- @param[type=table] config Table of configuration options: body for raw request body and routes for routing map config
+-- @return[type=table] The new instance of Lugate
 function Lugate:init(config)
   -- Create new lugate instance
   local lugate = self:new(config)
@@ -94,9 +94,11 @@ function Lugate:init(config)
 end
 
 --- Get a proper formated json error
--- @param [type=int] code Error code
--- @param [type=string] message Error message
--- @return [type=string]
+-- @param[type=int] code Error code
+-- @param[type=string] message Error message
+-- @param[type=table] data Additional error data
+-- @param[type=number] id Request id
+-- @return[type=string]
 function Lugate:build_json_error(code, message, data, id)
   local messages = {
     [Lugate.ERR_PARSE_ERROR] = 'Invalid JSON was received by the server. An error occurred on the server while parsing the JSON text.',
@@ -117,7 +119,7 @@ function Lugate:build_json_error(code, message, data, id)
 end
 
 --- Get ngx request body
--- @return [type=string]
+-- @return[type=string]
 function Lugate:get_body()
   if not self.body then
     self.body = self.ngx.req and self.ngx.req.get_body_data() or ''
@@ -127,7 +129,7 @@ function Lugate:get_body()
 end
 
 --- Parse raw body
--- @return [type=table]
+-- @return[type=table]
 function Lugate:get_data()
   if not self.data then
     self.data = self:get_body() and self.json.decode(self.body) or {}
@@ -137,14 +139,14 @@ function Lugate:get_data()
 end
 
 --- Check if request is a batch
--- @param [type=table] data Decoded request body
--- @return [type=boolean]
+-- @param[type=table] data Decoded request body
+-- @return[type=boolean]
 function Lugate:is_batch(data)
   return data and data[1] and ('table' == type(data[1])) and true or false
 end
 
 --- Get request collection
--- @return [type=table] The table of requests
+-- @return[type=table] The table of requests
 function Lugate:get_requests()
   if not self.requests then
     self.requests = {}
@@ -162,7 +164,7 @@ function Lugate:get_requests()
 end
 
 --- Get request collection prepared for ngx.location.capture_multi call
--- @return [type=table] The table of requests
+-- @return[type=table] The table of requests
 function Lugate:run()
   -- Execute 'pre' middleware
   if false == self:pre() then
@@ -174,6 +176,7 @@ function Lugate:run()
   for i, request in ipairs(self:get_requests()) do
     if request:is_cachable() and self.cache:get(request:get_key()) then
       self.responses[i] = self.cache:get(request:get_key())
+-- TODO refactor to make is_empty() method not to overlap is_valid() check
 --    elseif request:is_empty() then
 --      self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_EMPTY_REQUEST, nil, nil))
     elseif request:is_proxy_call() then
