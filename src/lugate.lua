@@ -28,8 +28,13 @@ Lugate.HTTP_POST = 8
 -- @param [type=table] config Table of configuration options: body for raw request body and routes for routing map config
 -- @return [type=table] The new instance of Lugate
 function Lugate:new(config)
+  config.pre = config.pre or function() ngx.say('foo'); ngx.exit(ngx.HTTP_OK) end
+  config.post = config.post or function() ngx.say('bar'); ngx.exit(ngx.HTTP_OK) end
+
   assert(type(config.ngx) == "table", "Parameter 'ngx' is required and should be a table!")
   assert(type(config.json) == "table", "Parameter 'json' is required and should be a table!")
+  assert(type(config.pre) == "function", "Parameter 'pre' is required and should be a function!")
+  assert(type(config.post) == "function", "Parameter 'post' is required and should be a function!")
 
   -- Define metatable
   local lugate = setmetatable({}, Lugate)
@@ -38,6 +43,9 @@ function Lugate:new(config)
   -- Define services and configs
   config.cache = config.cache or {'dummy'}
   local cache = lugate:load_module(config.cache, { dummy = "lugate.cache.dummy", redis = "lugate.cache.redis" })
+
+  lugate.pre = config.pre
+  lugate.post = config.post
   lugate.ngx = config.ngx
   lugate.json = config.json
   lugate.routes = config.routes or {}
@@ -156,6 +164,11 @@ end
 --- Get request collection prepared for ngx.location.capture_multi call
 -- @return [type=table] The table of requests
 function Lugate:run()
+  -- Execute 'pre' middleware
+  if false == self:pre() then
+    return ngx.exit(ngx.HTTP_OK)
+  end
+
   -- Loop requests
   local ngx_requests = {}
   for i, request in ipairs(self:get_requests()) do
@@ -190,6 +203,11 @@ function Lugate:run()
         self.cache:set(self.req_dat.key[n], self.responses[self.req_dat.num[n]], self.req_dat.ttl[n])
       end
     end
+  end
+
+  -- Execute 'post' middleware
+  if false == self:post() then
+    return ngx.exit(ngx.HTTP_OK)
   end
 
   return self.responses
