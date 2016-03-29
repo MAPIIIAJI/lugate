@@ -7,10 +7,12 @@ Lugate is a library for building JSON-RPC 2.0 Gateway API just inside of your NG
 
 ## About
 When we talk about Microservices Architecture pattern there is a thing there called
-[API Gateway](http://microservices.io/patterns/apigateway.html) that is the single entry point into the system.
+[API Gateway](http://microservices.io/patterns/apigateway.html) which is the single entry point into the system.
+
+
 Lugate is a binding over OpenResty's [ngx\_http\_lua\_module](https://github.com/openresty/lua-nginx-module) module.
 The library provides features for request parsing, validating and routing. Lugate acts like a caching proxy over the
-JSON-RPC 2.0 protocol and is meant to be used like an API Gateway for your system.
+JSON-RPC 2.0 protocol and is meant to be used like an entry point for your application.
 
 ## Install
 Lugate can be installed via the luarocks package manager. Just run:
@@ -34,8 +36,8 @@ luarocks install lugate
                     ngx = ngx,
                     cache = {'redis', '127.0.0.1', 6379},
                     routes = {
-                      ['v1%.([^%.]+).*'] = '/v1', -- v1.math.subtract -> /v1.math
-                      ['v2%.([^%.]+).*'] = '/v2', -- v2.math.addition -> /v2.math
+                      ['v1%.([^%.]+).*'] = '/v1/%1', -- v1.math.subtract -> /v1/math
+                      ['v2%.([^%.]+).*'] = '/v2/%1', -- v2.math.addition -> /v2/math
                     }
                   })
 
@@ -65,23 +67,24 @@ When the request is processed by the lugate proxy, the **route** and **cache** v
 *params* member and the nested **params** value is expanded to fill the whole parent *params* field.
 
 The request routing plan:
-1. Request is preprocessed by the the lugate proxy. Location: gateway.lugate.loc:
+
+- Request is preprocessed by the the lugate proxy. Location: gateway.lugate.loc:
 ```json
 {"jsonrpc": "2.0", "method": "subtract", "params": {"cache":3600, "key": "foobar", "route": "v2.substract", "params": [42, 23]}, "id": 1}
 ```
 
-2. Request is send to the proper service (deciding of the `route` param). Location: /v2/substract:
+- Request is send to the proper service (deciding of the `route` param). Location: /v2/substract:
 ```json
 {"jsonrpc": "2.0", "method": "substract", "params": [42, 23], "id": 1}
 ```
 
-3. Request is sent back to client:
+- Request is sent back to client:
 ```json
 {"jsonrpc": "2.0", "result": -19, "id": 2}
 ```
 
 ### Route
-  The routing destination. The value is processed by the lua `gsub` function.
+  The routing destination. The value is processed by the lua [gsub](http://www.lua.org/pil/20.1.html) function.
 ### Params
   The original params values.
 ### Ttl
