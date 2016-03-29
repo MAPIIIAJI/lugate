@@ -174,8 +174,8 @@ function Lugate:run()
   for i, request in ipairs(self:get_requests()) do
     if request:is_cachable() and self.cache:get(request:get_key()) then
       self.responses[i] = self.cache:get(request:get_key())
-    elseif request:is_empty() then
-      self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_EMPTY_REQUEST, nil, nil))
+--    elseif request:is_empty() then
+--      self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_EMPTY_REQUEST, nil, nil))
     elseif request:is_proxy_call() then
       local req, err = request:get_ngx_request()
       if req then
