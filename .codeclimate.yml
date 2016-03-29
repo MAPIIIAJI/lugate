@@ -1,0 +1,11 @@
+engines:
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - lua
+ratings:
+  paths:
+  - src/**
+exclude_paths:
+  - spec/
