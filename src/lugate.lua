@@ -29,7 +29,7 @@ Lugate.HTTP_POST = 8
 -- @return [type=table] The new instance of Lugate
 function Lugate:new(config)
   config.pre = config.pre or function() end
-  config.post = config.post or function() ngx.say('bar'); ngx.exit(ngx.HTTP_OK) end
+  config.post = config.post or function() end
 
   assert(type(config.ngx) == "table", "Parameter 'ngx' is required and should be a table!")
   assert(type(config.json) == "table", "Parameter 'json' is required and should be a table!")
