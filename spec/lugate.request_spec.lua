@@ -24,6 +24,17 @@ describe("Check request constructor", function()
 end)
 
 describe("Check request validation", function()
+
+  it("Request should not be empty if the body with any content is provided", function()
+    local request = Request:new({ foo = 'bar' }, {})
+    assert.is_false(request:is_empty())
+  end)
+
+  it("Request should only be empty if the body is empty", function()
+    local request = Request:new({}, {})
+    assert.is_true(request:is_empty())
+  end)
+
   it("Request should be valid if jsonrpc version and method are provided", function()
     local request = Request:new({ jsonrpc = '2.0', method = 'foo.bar' }, {})
     assert.is_true(request:is_valid())
@@ -185,18 +196,12 @@ describe("Check data and body builders", function()
     end)
 
     it("Should provide a valid ngx data table if the data is valid", function()
-      assert.equal(
-        canonical_ngx_request[1],
-        request:get_ngx_request()[1]
-      )
-      assert.equal(
-        canonical_ngx_request[2].method,
-        request:get_ngx_request()[2].method
-      )
-      assert.are_same(
-        lugate.json.decode(canonical_ngx_request[2].body),
-        lugate.json.decode(request:get_ngx_request()[2].body)
-      )
+      assert.equal(canonical_ngx_request[1],
+        request:get_ngx_request()[1])
+      assert.equal(canonical_ngx_request[2].method,
+        request:get_ngx_request()[2].method)
+      assert.are_same(lugate.json.decode(canonical_ngx_request[2].body),
+        lugate.json.decode(request:get_ngx_request()[2].body))
     end)
 
     it("Should provide a valid data table if the data is valid", function()
@@ -226,5 +231,4 @@ describe("Check data and body builders", function()
         request:get_data())
     end)
   end)
-
 end)

@@ -94,7 +94,7 @@ describe("Check body and data analysis", function()
     assert.equals('foo', lugate:get_body())
   end)
 
-  it("Method get_data() should return an empty table if bad json body is provided", function()
+  it("Method get_data() should return nil if bad json body is provided", function()
     local ngx = {
       req = {
         get_body_data = function()
@@ -103,7 +103,7 @@ describe("Check body and data analysis", function()
       }
     }
     local lugate = Lugate:new({ ngx = ngx, json = require "rapidjson" })
-    assert.are_same({}, lugate:get_data())
+    assert.is_nil(lugate:get_data())
   end)
 
   it("Method get_data() should decode a correctly formatted json body", function()

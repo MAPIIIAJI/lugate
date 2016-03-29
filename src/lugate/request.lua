@@ -44,7 +44,7 @@ end
 --- Check if request is empty
 -- @return[type=boolean]
 function Request:is_empty()
-  return type(self.data) == 'table' and next(self.data) == nil
+  return not next(self.data)
 end
 
 --- Check if request is a valid Lugate proxy call over JSON-RPC 2.0
