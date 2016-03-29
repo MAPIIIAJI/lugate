@@ -103,7 +103,7 @@ describe("Check body and data analysis", function()
       }
     }
     local lugate = Lugate:new({ ngx = ngx, json = require "rapidjson" })
-    assert.is_nil(lugate:get_data())
+    assert.are_same({}, lugate:get_data())
   end)
 
   it("Method get_data() should decode a correctly formatted json body", function()
