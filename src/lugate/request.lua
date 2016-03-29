@@ -92,13 +92,13 @@ end
 --- Get request cache key
 -- @return[type=string]
 function Request:get_ttl()
-  return self.data.params.cache and self.data.params.cache.ttl or false
+  return self.data.params and self.data.params.cache and self.data.params.cache.ttl or false
 end
 
 --- Get request cache key
 -- @return[type=string]
 function Request:get_key()
-  return self.data.params.cache and self.data.params.cache.key or false
+  return self.data.params and self.data.params.cache and self.data.params.cache.key or false
 end
 
 --- Check if request is cachable

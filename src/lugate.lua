@@ -28,7 +28,7 @@ Lugate.HTTP_POST = 8
 -- @param [type=table] config Table of configuration options: body for raw request body and routes for routing map config
 -- @return [type=table] The new instance of Lugate
 function Lugate:new(config)
-  config.pre = config.pre or function() ngx.say('foo'); ngx.exit(ngx.HTTP_OK) end
+  config.pre = config.pre or function() end
   config.post = config.post or function() ngx.say('bar'); ngx.exit(ngx.HTTP_OK) end
 
   assert(type(config.ngx) == "table", "Parameter 'ngx' is required and should be a table!")
@@ -130,7 +130,7 @@ end
 -- @return [type=table]
 function Lugate:get_data()
   if not self.data then
-    self.data = self:get_body() and self.json.decode(self.body) or nil
+    self.data = self:get_body() and self.json.decode(self.body) or {}
   end
 
   return self.data
@@ -176,7 +176,7 @@ function Lugate:run()
       self.responses[i] = self.cache:get(request:get_key())
     elseif request:is_empty() then
       self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_EMPTY_REQUEST, nil, nil))
-    elseif request:is_valid() then
+    elseif request:is_proxy_call() then
       local req, err = request:get_ngx_request()
       if req then
         table.insert(ngx_requests, req)
@@ -186,7 +186,7 @@ function Lugate:run()
       else
         self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_SERVER_ERROR, err, request:get_body(), request:get_id()))
       end
-    elseif request:is_proxy_call() then
+    elseif not request:is_proxy_call() then
       self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_INVALID_PROXY_CALL, nil, request:get_body(), request:get_id()))
     else
       self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_PARSE_ERROR, nil, request:get_body(), request:get_id()))
