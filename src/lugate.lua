@@ -126,7 +126,7 @@ end
 --- Check if request is empty
 -- @return[type=boolean]
 function Lugate:is_not_empty()
-  return self.ngx.req and self.ngx.req.get_body_data() ~= nil and true or false
+  return self:get_body() ~= '' and true or false
 end
 
 --- Get ngx request body
