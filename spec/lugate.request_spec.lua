@@ -25,16 +25,6 @@ end)
 
 describe("Check request validation", function()
 
-  it("Request should not be empty if the body with any content is provided", function()
-    local request = Request:new({ foo = 'bar' }, {})
-    assert.is_false(request:is_empty())
-  end)
-
-  it("Request should only be empty if the body is empty", function()
-    local request = Request:new({}, {})
-    assert.is_true(request:is_empty())
-  end)
-
   it("Request should be cachable if ttl and key are given", function()
     local request1 = Request:new({ params = { cache = { key = 'foo', ttl = 123 } } }, {})
     assert.is_true(request1:is_cachable())
