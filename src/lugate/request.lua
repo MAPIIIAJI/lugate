@@ -22,8 +22,6 @@ function Request:new(data, lugate)
   self.__index = self
   request.lugate = lugate
   request.data = data
-  request.expire = {}
-  request.memory = {}
 
   return request
 end
@@ -32,13 +30,19 @@ end
 -- @return[type=boolean]
 function Request:is_valid()
   if nil == self.valid then
-    self.valid = self.data
-      and self.data['jsonrpc']
-      and self.data['method']
+    self.valid = not self:is_empty()
+      and self.data.jsonrpc
+      and self.data.method
       and true or false
   end
 
   return self.valid
+end
+
+--- Check if request is empty
+-- @return[type=boolean]
+function Request:is_empty()
+  return not next(self.data)
 end
 
 --- Check if request is a valid Lugate proxy call over JSON-RPC 2.0
@@ -47,8 +51,8 @@ end
 function Request:is_proxy_call()
   if nil == self.proxy_call then
     self.proxy_call = self:is_valid()
-      and self.data['params']['route']
-      and self.data['params']
+      and self.data.params
+      and self.data.params.route
       and true or false
   end
 
@@ -85,16 +89,22 @@ function Request:get_route()
   return self:is_proxy_call() and self.data.params.route or nil
 end
 
---- Get request cache time
+--- Get request cache key
 -- @return[type=string]
-function Request:get_cache()
-  return self:is_proxy_call() and self.data.params.cache or false
+function Request:get_ttl()
+  return self.data.params and 'table' == type(self.data.params.cache) and self.data.params.cache.ttl or false
 end
 
 --- Get request cache key
 -- @return[type=string]
 function Request:get_key()
-  return self:is_proxy_call() and self.data.params.key or false
+  return self.data.params and 'table' == type(self.data.params.cache) and self.data.params.cache.key or false
+end
+
+--- Check if request is cachable
+-- @return[type=boolean]
+function Request:is_cachable()
+  return self:get_ttl() and self:get_key() and true or false
 end
 
 --- Get which uri is passing for request data

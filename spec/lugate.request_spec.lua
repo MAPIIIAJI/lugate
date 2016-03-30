@@ -24,6 +24,39 @@ describe("Check request constructor", function()
 end)
 
 describe("Check request validation", function()
+
+  it("Request should not be empty if the body with any content is provided", function()
+    local request = Request:new({ foo = 'bar' }, {})
+    assert.is_false(request:is_empty())
+  end)
+
+  it("Request should only be empty if the body is empty", function()
+    local request = Request:new({}, {})
+    assert.is_true(request:is_empty())
+  end)
+
+  it("Request should be cachable if ttl and key are given", function()
+    local request1 = Request:new({ params = { cache = { key = 'foo', ttl = 123 } } }, {})
+    assert.is_true(request1:is_cachable())
+
+    local request2 = Request:new({ params = { cache = { key = 'foo', ttl = 0 } } }, {})
+    assert.is_true(request2:is_cachable())
+  end)
+
+  it("Request should NOT be cachable if ttl or key are nil", function()
+    local request1 = Request:new({ params = { key = 'foo' } }, {})
+    assert.is_false(request1:is_cachable())
+
+    local request2 = Request:new({ params = { ttl = 123 } }, {})
+    assert.is_false(request2:is_cachable())
+
+    local request3 = Request:new({ params = { ttl = false } }, {})
+    assert.is_false(request3:is_cachable())
+
+    local request4 = Request:new({ params = { ttl = false } }, {})
+    assert.is_false(request4:is_cachable())
+  end)
+
   it("Request should be valid if jsonrpc version and method are provided", function()
     local request = Request:new({ jsonrpc = '2.0', method = 'foo.bar' }, {})
     assert.is_true(request:is_valid())
@@ -95,13 +128,15 @@ describe("Check request params are parsed correctly", function()
       method = 'method.name',
       params = {
         route = 'v1.method.name',
-        cache = false,
-        key = 'd88d8ds00-s',
+        cache = {
+          ttl = false,
+          key = 'd88d8ds00-s',
+        },
         params = { one = 1, two = 2 }
       }
     }, {})
     assert.equal('v1.method.name', request:get_route())
-    assert.equal(false, request:get_cache())
+    assert.equal(false, request:get_ttl())
     assert.equal('d88d8ds00-s', request:get_key())
   end)
 end)
@@ -119,8 +154,10 @@ describe('Check that uri is created correctly', function()
       method = 'method.name',
       params = {
         route = 'v2.method.name',
-        cache = false,
-        key = 'd88d8ds00-s',
+        cache = {
+          ttl = false,
+          key = 'd88d8ds00-s',
+        },
         params = { one = 1, two = 2 }
       },
       id = 1,
@@ -136,8 +173,10 @@ describe('Check that uri is created correctly', function()
       method = 'method.name',
       params = {
         route = 'v1.method.name',
-        cache = false,
-        key = 'd88d8ds00-s',
+        cache = {
+          ttl = false,
+          key = 'd88d8ds00-s',
+        },
         params = { one = 1, two = 2 }
       },
       id = 1,
@@ -163,8 +202,10 @@ describe("Check data and body builders", function()
       method = 'method.name',
       params = {
         route = 'v2.method.name',
-        cache = false,
-        key = 'd88d8ds00-s',
+        cache = {
+          ttl = false,
+          key = 'd88d8ds00-s',
+        },
         params = { one = 1, two = 2 }
       },
       id = 1,
@@ -185,18 +226,12 @@ describe("Check data and body builders", function()
     end)
 
     it("Should provide a valid ngx data table if the data is valid", function()
-      assert.equal(
-        canonical_ngx_request[1],
-        request:get_ngx_request()[1]
-      )
-      assert.equal(
-        canonical_ngx_request[2].method,
-        request:get_ngx_request()[2].method
-      )
-      assert.are_same(
-        lugate.json.decode(canonical_ngx_request[2].body),
-        lugate.json.decode(request:get_ngx_request()[2].body)
-      )
+      assert.equal(canonical_ngx_request[1],
+        request:get_ngx_request()[1])
+      assert.equal(canonical_ngx_request[2].method,
+        request:get_ngx_request()[2].method)
+      assert.are_same(lugate.json.decode(canonical_ngx_request[2].body),
+        lugate.json.decode(request:get_ngx_request()[2].body))
     end)
 
     it("Should provide a valid data table if the data is valid", function()
@@ -226,5 +261,4 @@ describe("Check data and body builders", function()
         request:get_data())
     end)
   end)
-
 end)
