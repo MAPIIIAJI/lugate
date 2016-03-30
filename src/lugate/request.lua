@@ -30,19 +30,12 @@ end
 -- @return[type=boolean]
 function Request:is_valid()
   if nil == self.valid then
-    self.valid = not self:is_empty()
-      and self.data.jsonrpc
+    self.valid = self.data.jsonrpc
       and self.data.method
       and true or false
   end
 
   return self.valid
-end
-
---- Check if request is empty
--- @return[type=boolean]
-function Request:is_empty()
-  return not next(self.data)
 end
 
 --- Check if request is a valid Lugate proxy call over JSON-RPC 2.0

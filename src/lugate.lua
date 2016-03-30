@@ -90,6 +90,11 @@ function Lugate:init(config)
   -- Build config
   lugate.ngx.req.read_body() -- explicitly read the req body
 
+  if not lugate:is_not_empty() then
+    lugate.ngx.say(lugate:build_json_error(Lugate.ERR_EMPTY_REQUEST))
+    lugate.ngx.exit(lugate.ngx.HTTP_OK)
+  end
+
   return lugate
 end
 
@@ -116,6 +121,12 @@ function Lugate:build_json_error(code, message, data, id)
   local id = id or 'null'
 
   return '{"jsonrpc":"2.0","error":{"code":' .. tostring(code) .. ',"message":"' .. message .. '","data":' .. data .. '},"id":' .. id .. '}'
+end
+
+--- Check if request is empty
+-- @return[type=boolean]
+function Lugate:is_not_empty()
+  return self:get_body() ~= '' and true or false
 end
 
 --- Get ngx request body
@@ -176,9 +187,6 @@ function Lugate:run()
   for i, request in ipairs(self:get_requests()) do
     if request:is_cachable() and self.cache:get(request:get_key()) then
       self.responses[i] = self.cache:get(request:get_key())
--- TODO refactor to make is_empty() method not to overlap is_valid() check
---    elseif request:is_empty() then
---      self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_EMPTY_REQUEST, nil, nil))
     elseif request:is_proxy_call() then
       local req, err = request:get_ngx_request()
       if req then
