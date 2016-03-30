@@ -90,7 +90,7 @@ function Lugate:init(config)
   -- Build config
   lugate.ngx.req.read_body() -- explicitly read the req body
 
-  if lugate:is_empty() then
+  if not lugate:is_not_empty() then
     lugate.ngx.say(lugate:build_json_error(Lugate.ERR_EMPTY_REQUEST))
     lugate.ngx.exit(lugate.ngx.HTTP_OK)
   end
@@ -125,8 +125,8 @@ end
 
 --- Check if request is empty
 -- @return[type=boolean]
-function Lugate:is_empty()
-  return self.ngx.req and self.ngx.req.get_body_data() == nil and true or false
+function Lugate:is_not_empty()
+  return self.ngx.req and self.ngx.req.get_body_data() ~= nil and true or false
 end
 
 --- Get ngx request body
