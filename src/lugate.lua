@@ -28,13 +28,16 @@ Lugate.HTTP_POST = 8
 -- @param[type=table] config Table of configuration options: body for raw request body and routes for routing map config
 -- @return[type=table] The new instance of Lugate
 function Lugate:new(config)
-  config.pre = config.pre or function() end
-  config.post = config.post or function() end
+  config.hooks = config.hooks or {}
+  config.hooks.pre = config.hooks.pre or function() end
+  config.hooks.post = config.hooks.post or function() end
+  config.hooks.cache = config.hooks.cache or function() end
 
   assert(type(config.ngx) == "table", "Parameter 'ngx' is required and should be a table!")
   assert(type(config.json) == "table", "Parameter 'json' is required and should be a table!")
-  assert(type(config.pre) == "function", "Parameter 'pre' is required and should be a function!")
-  assert(type(config.post) == "function", "Parameter 'post' is required and should be a function!")
+  assert(type(config.hooks.pre) == "function", "Parameter 'pre' is required and should be a function!")
+  assert(type(config.hooks.post) == "function", "Parameter 'post' is required and should be a function!")
+  assert(type(config.hooks.cache) == "function", "Parameter 'cache' is required and should be a function!")
 
   -- Define metatable
   local lugate = setmetatable({}, Lugate)
@@ -44,8 +47,7 @@ function Lugate:new(config)
   config.cache = config.cache or {'dummy'}
   local cache = lugate:load_module(config.cache, { dummy = "lugate.cache.dummy", redis = "lugate.cache.redis" })
 
-  lugate.pre = config.pre
-  lugate.post = config.post
+  lugate.hooks = config.hooks
   lugate.ngx = config.ngx
   lugate.json = config.json
   lugate.routes = config.routes or {}
@@ -178,7 +180,7 @@ end
 -- @return[type=table] The table of requests
 function Lugate:run()
   -- Execute 'pre' middleware
-  if false == self:pre() then
+  if false == self.hooks:pre() then
     return ngx.exit(ngx.HTTP_OK)
   end
 
@@ -210,14 +212,14 @@ function Lugate:run()
     for n, response in ipairs(responses) do
       self.responses[self.req_dat.num[n]] = self:clean_response(response)
       -- Store to cache
-      if self.req_dat.key[n] and not self.cache:get(self.req_dat.key[n]) then
+      if self.req_dat.key[n]and false ~= self.hooks:cache(response) and not self.cache:get(self.req_dat.key[n]) then
         self.cache:set(self.req_dat.key[n], self.responses[self.req_dat.num[n]], self.req_dat.ttl[n])
       end
     end
   end
 
   -- Execute 'post' middleware
-  if false == self:post() then
+  if false == self.hooks:post() then
     return ngx.exit(ngx.HTTP_OK)
   end
 

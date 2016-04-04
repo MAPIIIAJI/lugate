@@ -128,8 +128,9 @@ The request routing plan:
 
 ## Middlewares
 You can use the `pre` and `post` hooks to paste additional logic to the `run` method:
-* `pre()` is evaluated before all requests are processed;
-* `post()` - after all requests are processed;
+* `pre(lugate)` is evaluated before all requests are processed;
+* `post(lugate)` - after all requests are processed;
+* `cache(lugate, response)` - before cache is stored;
 
 The `lugate` instance is passed to the callback as the only parameter. If `false` is returned the futher evaluation is stopped.
 
