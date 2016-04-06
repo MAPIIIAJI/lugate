@@ -19,8 +19,15 @@ function Redis:new(...)
   local redis = setmetatable({}, self)
   self.__index = self
 
+  -- db number
+  local db = 0
+  if #arg == 3 then
+    db = table.remove(arg, 3)
+  end
+
   redis.lredis = require 'redis'
   redis.client = redis.lredis.connect(unpack(arg))
+  redis.client:select(db)
 
   return redis
 end
