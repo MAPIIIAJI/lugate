@@ -26,7 +26,6 @@ function Redis:new(...)
   end
 
   redis.lredis = require 'redis'
-  redis.lredis.commands.hset = redis.command('select')
   redis.client = redis.lredis.connect(unpack(arg))
   redis.client:select(db)
 
