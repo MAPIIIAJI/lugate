@@ -45,6 +45,15 @@ function Redis:set(key, value, ttl)
   self.client:expire(key, ttl)
 end
 
+--- Add value to the set
+-- @param[type=string] set
+-- @param[type=string] key
+function Redis:sadd(set, key)
+  assert(type(set) == "string", "Parameter 'set' is required and should be a string!")
+  assert(type(key) == "string", "Parameter 'key' is required and should be a string!")
+  self.client:sadd(set, key)
+end
+
 --- Get value from cache
 -- @param[type=string] key
 -- @return[type=string]
