@@ -130,7 +130,7 @@ The request routing plan:
 ### Key
   The cache key is calculated by client. This approach gives more flexibility for debugging and development goals.
 ### Tags
-    The cache tags. Cache Keys Stored in special Tag sets. Use it for cache invalidation.
+  The cache tags. Cache Keys Stored in special Tag sets. Use it for cache invalidation.
 
 ## Middlewares
 You can use the `pre` and `post` hooks to paste additional logic to the `run` method:
