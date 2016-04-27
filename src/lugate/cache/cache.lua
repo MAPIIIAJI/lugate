@@ -23,6 +23,12 @@ end
 function Cache:set(key, value, ttl)
 end
 
+--- Add value to the set
+-- @param[type=string] set
+-- @param[type=string] key
+function Cache:sadd(set, key)
+end
+
 --- Get value from cache
 -- @param[type=string] key
 -- @return[type=string]

@@ -52,7 +52,7 @@ function Lugate:new(config)
   lugate.json = config.json
   lugate.routes = config.routes or {}
   lugate.cache = cache
-  lugate.req_dat = { num = {}, key = {}, ttl = {} }
+  lugate.req_dat = { num = {}, key = {}, ttl = {}, tags = {} }
   lugate.responses = {}
 
   return lugate
@@ -196,6 +196,7 @@ function Lugate:run()
         self.req_dat.num[#ngx_requests] = i
         self.req_dat.key[#ngx_requests] = request:get_key()
         self.req_dat.ttl[#ngx_requests] = request:get_ttl()
+        self.req_dat.tags[#ngx_requests] = request:get_tags()
       else
         self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_SERVER_ERROR, err, request:get_body(), request:get_id()))
       end
@@ -214,6 +215,12 @@ function Lugate:run()
       -- Store to cache
       if self.req_dat.key[n]and false ~= self.hooks:cache(response) and not self.cache:get(self.req_dat.key[n]) then
         self.cache:set(self.req_dat.key[n], self.responses[self.req_dat.num[n]], self.req_dat.ttl[n])
+        -- Store keys in tags
+        if self.req_dat.tags[n] then
+          for _, tag in ipairs(self.req_dat.tags[n]) do
+            self.cache:sadd(tag, self.req_dat.key[n])
+          end
+        end
       end
     end
   end

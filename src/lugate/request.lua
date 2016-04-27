@@ -94,6 +94,12 @@ function Request:get_key()
   return self.data.params and 'table' == type(self.data.params.cache) and self.data.params.cache.key or false
 end
 
+--- Get request cache tags
+-- @return[type=table]
+function Request:get_tags()
+  return self.data.params and 'table' == type(self.data.params.cache) and 'table' == type(self.data.params.cache.tags) and self.data.params.cache.tags or false
+end
+
 --- Check if request is cachable
 -- @return[type=boolean]
 function Request:is_cachable()

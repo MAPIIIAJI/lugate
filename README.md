@@ -77,6 +77,7 @@ is wrapped in additional structure:
 * **cache** - Cache control logic
   * **ttl** - Cache time to life
   * **key** - Cache key
+  * **tags** - Cache tags
 
 When the request is processed by the lugate proxy, the **route** and **cache** values are removed from the
 *params* member and the nested **params** value is expanded to fill the whole parent *params* field.
@@ -89,8 +90,11 @@ The request routing plan:
     "jsonrpc": "2.0",
     "method": "subtract",
     "params": {
-        "cache": 3600,
-        "key": "foobar",
+        "cache": {
+            "ttl": 3600,
+            "key": "foobar",
+            "tags": ["news_list", "top7"]
+        },
         "route": "v2.substract",
         "params": [42, 23]
     },
@@ -125,6 +129,8 @@ The request routing plan:
   The time-to-life value is used to set cache expiration time. If ttl is false, no cache is set.
 ### Key
   The cache key is calculated by client. This approach gives more flexibility for debugging and development goals.
+### Tags
+  The cache tags. Cache Keys Stored in special Tag sets. Use it for cache invalidation.
 
 ## Middlewares
 You can use the `pre` and `post` hooks to paste additional logic to the `run` method:

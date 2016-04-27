@@ -50,4 +50,14 @@ function Dummy:get(key)
   return nil
 end
 
+--- Add value to the set
+-- @param[type=string] set
+-- @param[type=string] key
+function Dummy:sadd(set, key)
+  assert(type(set) == "string", "Parameter 'set' is required and should be a string!")
+  assert(type(key) == "string", "Parameter 'key' is required and should be a string!")
+  self.memory[set] = self.memory[set] or {}
+  table.insert(self.memory[set], key)
+end
+
 return Dummy
