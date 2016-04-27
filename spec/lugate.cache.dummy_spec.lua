@@ -24,4 +24,13 @@ describe("Check dummy cache setter and getter", function()
     -- restore time
     os.time = time_fn
   end)
+
+  it("Should correctly store tags to the set", function()
+    cache:sadd('tag1', 'bar1')
+    cache:sadd('tag1', 'bar2')
+    cache:sadd('tag2', 'bar1')
+
+    assert.same({'bar1', 'bar2'}, cache:get('tag1'))
+    assert.same({'bar1'}, cache:get('tag2'))
+  end)
 end)

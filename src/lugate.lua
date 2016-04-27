@@ -215,7 +215,7 @@ function Lugate:run()
       -- Store to cache
       if self.req_dat.key[n]and false ~= self.hooks:cache(response) and not self.cache:get(self.req_dat.key[n]) then
         self.cache:set(self.req_dat.key[n], self.responses[self.req_dat.num[n]], self.req_dat.ttl[n])
-        -- Store keys in tags
+        -- Store keys to tag sets
         if self.req_dat.tags[n] then
           for _, tag in ipairs(self.req_dat.tags[n]) do
             self.cache:sadd(tag, self.req_dat.key[n])

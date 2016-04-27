@@ -106,7 +106,7 @@ function Request:is_cachable()
   return self:get_ttl() and self:get_key() and true or false
 end
 
---- Get which uri is passing for request data
+--- Get uri passing for request data
 -- @return[type=string] Request uri
 -- @return[type=string] Error
 function Request:get_uri()

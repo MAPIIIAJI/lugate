@@ -56,6 +56,7 @@ end
 function Dummy:sadd(set, key)
   assert(type(set) == "string", "Parameter 'set' is required and should be a string!")
   assert(type(key) == "string", "Parameter 'key' is required and should be a string!")
+  self.expire[set] = os.time() + 3600
   self.memory[set] = self.memory[set] or {}
   table.insert(self.memory[set], key)
 end

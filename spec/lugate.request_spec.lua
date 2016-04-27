@@ -31,6 +31,9 @@ describe("Check request validation", function()
 
     local request2 = Request:new({ params = { cache = { key = 'foo', ttl = 0 } } }, {})
     assert.is_true(request2:is_cachable())
+
+    local request3 = Request:new({ params = { cache = { key = 'foo', ttl = 0, tags = {'foo', 'bar'} } } }, {})
+    assert.is_true(request3:is_cachable())
   end)
 
   it("Request should NOT be cachable if ttl or key are nil", function()
@@ -45,6 +48,9 @@ describe("Check request validation", function()
 
     local request4 = Request:new({ params = { ttl = false } }, {})
     assert.is_false(request4:is_cachable())
+
+    local request5 = Request:new({ params = { cache = { ttl = false, tags = {'foo', 'bar'} } } }, {})
+    assert.is_false(request5:is_cachable())
   end)
 
   it("Request should be valid if jsonrpc version and method are provided", function()
@@ -121,6 +127,7 @@ describe("Check request params are parsed correctly", function()
         cache = {
           ttl = false,
           key = 'd88d8ds00-s',
+          tags = {'foo', 'bar'},
         },
         params = { one = 1, two = 2 }
       }
@@ -128,6 +135,7 @@ describe("Check request params are parsed correctly", function()
     assert.equal('v1.method.name', request:get_route())
     assert.equal(false, request:get_ttl())
     assert.equal('d88d8ds00-s', request:get_key())
+    assert.same({'foo', 'bar'}, request:get_tags())
   end)
 end)
 
