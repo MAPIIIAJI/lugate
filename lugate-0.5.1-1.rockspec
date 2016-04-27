@@ -1,8 +1,8 @@
 package = "lugate"
-version = "0.5.0-1"
+version = "0.5.1-1"
 source = {
   url = "git://github.com/zinovyev/lugate",
-  tag = "0.5.0",
+  tag = "0.5.1",
 }
 description = {
   summary = "A library for building JSON-RPC 2.0 Gateway API just inside of your NGINX configuration file",
