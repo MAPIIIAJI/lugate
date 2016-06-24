@@ -18,13 +18,14 @@ Lugate is a library for building JSON-RPC 2.0 Gateway API just inside of your NG
 
               -- Get new lugate instance
               local lugate = Lugate:init({
-                json = require "rapidjson",
-                ngx = ngx,
-                cache = {'redis', '127.0.0.1', 6379},
-                routes = {
-                  ['v1%.([^%.]+).*'] = '/v1/%1', -- v1.math.subtract -> /v1/math
-                  ['v2%.([^%.]+).*'] = '/v2/%1', -- v2.math.addition -> /v2/math
-                }
+                json = require "rapidjson",             -- 1. Require wrapper to work with json (should be installed)
+                ngx = ngx,                              -- 2. Require nginx instance
+                cache = {'redis', '127.0.0.1', 6379},   -- 3. Configure cache wrapper (redis and dummy cache modules are currently available)
+                routes = {                              -- 4. Routing rules
+                  ['v1%.([^%.]+).*'] = '/v1/%1',        -- 4.1 v1.math.subtract -> /v1/math (for example)
+                  ['v2%.([^%.]+).*'] = '/v2/%1',        -- 4.2 v2.math.addition -> /v2/math (for example)
+                },
+                debug = true,                           -- 5. Enable debug mode (write all requests and responses to the nginx error log)
               })
 
               -- Send multi requst and get multi response

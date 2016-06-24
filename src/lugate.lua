@@ -20,6 +20,8 @@ local Lugate = {
   ERR_SERVER_ERROR = -32000, -- Error code for "Server error" error
   ERR_INVALID_PROXY_CALL = -32098, -- Error code for "Invalid proxy call" error
   ERR_EMPTY_REQUEST = -32097, -- Error code for "Empty request" error
+  VERSION = '0.5.3', -- Current version
+  DBG_MSG = 'DBG %s>>%s<<', -- Template for error log
 }
 
 Lugate.HTTP_POST = 8
@@ -32,12 +34,14 @@ function Lugate:new(config)
   config.hooks.pre = config.hooks.pre or function() end
   config.hooks.post = config.hooks.post or function() end
   config.hooks.cache = config.hooks.cache or function() end
+  config.debug = config.debug or false
 
   assert(type(config.ngx) == "table", "Parameter 'ngx' is required and should be a table!")
   assert(type(config.json) == "table", "Parameter 'json' is required and should be a table!")
   assert(type(config.hooks.pre) == "function", "Parameter 'pre' is required and should be a function!")
   assert(type(config.hooks.post) == "function", "Parameter 'post' is required and should be a function!")
   assert(type(config.hooks.cache) == "function", "Parameter 'cache' is required and should be a function!")
+  assert(type(config.debug) == "boolean", "Parameter 'debug' is required and should be a function!")
 
   -- Define metatable
   local lugate = setmetatable({}, Lugate)
@@ -54,6 +58,7 @@ function Lugate:new(config)
   lugate.cache = cache
   lugate.req_dat = { num = {}, key = {}, ttl = {}, tags = {}, ids = {} }
   lugate.responses = {}
+  lugate.debug = config.debug
 
   return lugate
 end
@@ -83,6 +88,9 @@ function Lugate:init(config)
   -- Create new lugate instance
   local lugate = self:new(config)
 
+  -- Print version to header
+  lugate.ngx.header["X-Lugate-Version"] = Lugate.VERSION;
+
   -- Check request method
   if 'POST' ~= lugate.ngx.req.get_method() then
     lugate.ngx.say(lugate:build_json_error(Lugate.ERR_INVALID_REQUEST, 'Only POST requests are allowed'))
@@ -98,6 +106,17 @@ function Lugate:init(config)
   end
 
   return lugate
+end
+
+--- Format error message
+-- @param[type=string] Message
+-- @param[type=string] Comment
+-- @return[type=string]
+function Lugate:write_log(message, comment)
+  if self.debug then
+      comment = comment and '(' .. comment .. ')' or ''
+      self.ngx.log(self.ngx.ERR, string.format(Lugate.DBG_MSG, comment, message))
+  end
 end
 
 --- Get a proper formated json error
@@ -187,6 +206,8 @@ function Lugate:run()
   -- Loop requests
   local ngx_requests = {}
   for i, request in ipairs(self:get_requests()) do
+    self:write_log(request:get_body(), 'REQ')
+
     if request:is_cachable() and self.cache:get(request:get_key()) then
       self.responses[i] = self.cache:get(request:get_key())
     elseif request:is_proxy_call() then
@@ -218,12 +239,12 @@ function Lugate:run()
       -- Process empty or broken responses
       local broken = false
       if '' == self.responses[self.req_dat.num[n]] then
-          self.responses[self.req_dat.num[n]] = '{}'
           self.responses[self.req_dat.num[n]] = self:clean_response(self:build_json_error(
               Lugate.ERR_SERVER_ERROR, 'Server error. Empty response.', nil, self.req_dat.ids[n]
           ))
           broken = true
       end
+      self:write_log(self.responses[self.req_dat.num[n]], 'RESP')
 
       -- Store to cache
       if not broken and self.req_dat.key[n] and false ~= self.hooks:cache(response) and not self.cache:get(self.req_dat.key[n]) then
