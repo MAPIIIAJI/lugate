@@ -20,7 +20,7 @@ local Lugate = {
   ERR_SERVER_ERROR = -32000, -- Error code for "Server error" error
   ERR_INVALID_PROXY_CALL = -32098, -- Error code for "Invalid proxy call" error
   ERR_EMPTY_REQUEST = -32097, -- Error code for "Empty request" error
-  VERSION = '0.5.3', -- Current version
+  VERSION = '0.5.4', -- Current version
   DBG_MSG = 'DBG %s>>%s<<', -- Template for error log
 }
 
