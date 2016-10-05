@@ -149,9 +149,10 @@ end)
 describe("Check response validation", function ()
   local ngx = { req = {}, HTTP_OK = 200 }
   local lugate = Lugate:new({ ngx = ngx, json = require "rapidjson" })
-  local bad_response = {
-    status = 504,
-    body = [[
+  it("Should provide a valid HTTP error status", function()
+    local bad_response = {
+      status = 504,
+      body = [[
 <!DOCTYPE html>
 <html>
 <head>
@@ -174,16 +175,68 @@ the <a href="http://nginx.org/r/error_log">error log</a> for details.</p>
 </body>
 </html>
       ]],
-  }
-  it("Should provide a valid HTTP error status", function()
-    lugate.req_dat.num[1] = 1
-    lugate.req_dat.ids[1] = 256
-    lugate:handle_response(1, bad_response)
-    print(lugate.responses[1])
---    ngx.req.get_body_data = function()
---      return '{"foo":"bar"}'
---    end
---    assert.equal(1, #lugate:get_requests())
+    }
+    lugate.req_dat.num[1256] = 1256
+    lugate.req_dat.ids[1256] = 256
+    lugate:handle_response(1256, bad_response)
+    assert.equals('{"jsonrpc":"2.0","error":{"code":504,"message":"Gateway Timeout","data":null},"id":256}', lugate.responses[1256])
   end)
 
+  it("Should throw an error on invalid JSON with 200 HTTP status", function()
+    local bad_response = {
+      status = 200,
+      body = [[
+<!DOCTYPE html>
+<html>
+<head>
+<title>Error</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>An error occurred.</h1>
+<p>Sorry, the page you are looking for is currently unavailable.<br/>
+Please try again later.</p>
+<p>If you are the system administrator of this resource then you should check
+the <a href="http://nginx.org/r/error_log">error log</a> for details.</p>
+<p><em>Faithfully yours, nginx.</em></p>
+</body>
+</html>
+      ]],
+    }
+    lugate.req_dat.num[1111] = 1111
+    lugate.req_dat.ids[1111] = 16
+    lugate:handle_response(1111, bad_response)
+    assert.equals('{"jsonrpc":"2.0","error":{"code":-32000,"message":"Server error. Bad JSON-RPC response.","data":null},"id":16}', lugate.responses[1111])
+  end)
+
+  it("Should pass thought valid error messages", function()
+    local valid_error_response = {
+      status = 200,
+      body = '{"jsonrpc": "2.0", "error": {"code": -32600, "message": "Invalid Request"}, "id": null}',
+    }
+    lugate.req_dat.num[40] = 40
+    lugate.req_dat.ids[40] = 32
+    lugate:handle_response(40, valid_error_response)
+    assert.equals(valid_error_response.body, lugate.responses[40])
+  end)
+
+  it("Should pass thought valid result messages", function()
+    local valid_result_response = {
+      status = 200,
+      body = '{"jsonrpc": "2.0", "result": ["hello", 5], "id": "9"}',
+    }
+    lugate.req_dat.num[15] = 15
+    lugate.req_dat.ids[15] = 32
+    lugate:handle_response(15, valid_result_response)
+    assert.equals(valid_result_response.body, lugate.responses[15])
+  end)
+end)
+
+describe("Check request validation", function ()
 end)
