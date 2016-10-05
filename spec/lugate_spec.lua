@@ -238,5 +238,47 @@ the <a href="http://nginx.org/r/error_log">error log</a> for details.</p>
   end)
 end)
 
-describe("Check request validation", function ()
+describe("Check request validation", function()
+  local ngx = { req = {}, location = {}, HTTP_OK = 200 }
+  local lugate = Lugate:new({
+    ngx = ngx,
+    json = require "rapidjson",
+    routes = {                              -- 4. Routing rules
+      ['v1%.([^%.]+).*'] = '/v1/%1',        -- 4.1 v1.math.subtract -> /v1/math (for example)
+      ['v2%.([^%.]+).*'] = '/v2/%1',        -- 4.2 v2.math.addition -> /v2/math (for example)
+    }
+  })
+
+  lugate.ngx.location.capture_multi = function()
+    return
+      {
+        status = 200,
+        body = '{"jsonrpc": "2.0", "result": "Valid response", "id": 2}',
+      },
+      {
+        status = 200,
+        body = '{"jsonrpc": "2.0", "result": "Valid response", "id": 3}',
+      }
+  end
+
+  lugate.ngx.req.get_body_data = function()
+    return [[
+[
+    {"jsonrpc": "2.0", "method": "sum", "params": [1,2,4], "id": "1"},
+    {"jsonrpc":"2.0","method":"subtract","params":{"cache":{"ttl":3600,"key":"foobar","tags":["news_list","top7"]},"route":"v2.substract","params":[42,23]},"id":2},
+    {"foo": "boo"},
+    {"jsonrpc":"2.0","method":"subtract","params":{"cache":{"ttl":3600,"key":"foobar","tags":["news_list","top7"]},"route":"v2.substract","params":[42,23]},"id":3},
+    {"jsonrpc":"2.0","method":"subtract","params":{"cache":{"ttl":3600,"key":"foobar","tags":["news_list","top7"]},"route":"v3.substract","params":[42,23]},"id":4}
+]
+    ]]
+  end
+
+  it("Should provide valid responses", function()
+    lugate:run()
+    assert.is_not_false(string.find(lugate.responses[1], 'Invalid proxy call'))
+    assert.is_not_false(string.find(lugate.responses[5], 'Failed to bind the route'))
+    assert.equals('{"jsonrpc": "2.0", "result": "Valid response", "id": 2}', lugate.responses[2])
+    assert.equals('{"jsonrpc":"2.0","error":{"code":-32098,"message":"Invalid proxy call.","data":"{}"},"id":null}', lugate.responses[3])
+    assert.equals('{"jsonrpc": "2.0", "result": "Valid response", "id": 3}', lugate.responses[4])
+  end)
 end)

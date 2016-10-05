@@ -212,12 +212,12 @@ function Lugate:run()
   -- Loop requests
   local ngx_requests = {}
   for i, request in ipairs(self:get_requests()) do
-    self:attach_requeest(i, request)
+    self:attach_request(i, request, ngx_requests)
   end
 
   -- Send multi requst and get multi response
   if #ngx_requests > 0 then
-    local responses = { ngx.location.capture_multi(ngx_requests) }
+    local responses = { self.ngx.location.capture_multi(ngx_requests) }
     for n, response in ipairs(responses) do
       self:handle_response(n, response)
     end
@@ -235,7 +235,7 @@ end
 -- @param[type=number] i Requets key
 -- @param[type=table] request Request object
 -- @return[type=boolean]
-function Lugate:attach_request(i, request)
+function Lugate:attach_request(i, request, ngx_requests)
   self:write_log(request:get_body(), Lugate.REQ_PREF)
 
   if request:is_cachable() and self.cache:get(request:get_key()) then
@@ -245,6 +245,7 @@ function Lugate:attach_request(i, request)
     if req then
       table.insert(ngx_requests, req)
       local req_count = #ngx_requests
+
       self.req_dat.num[req_count] = i
       self.req_dat.key[req_count] = request:get_key()
       self.req_dat.ttl[req_count] = request:get_ttl()
@@ -282,6 +283,8 @@ function Lugate:handle_response(n, response)
     local first_char = string.sub(self.responses[self.req_dat.num[n]], 1, 1);
     local last_char = string.sub(self.responses[self.req_dat.num[n]], -1);
     local broken = false
+
+    -- JSON check
     if ('' == self.responses[self.req_dat.num[n]]) or ('{' ~= first_char and '[' ~= first_char) or ('}' ~= last_char and ']' ~= last_char) then
       -- Process empty or broken responses
       self.responses[self.req_dat.num[n]] = self:clean_response(self:build_json_error(
@@ -289,7 +292,6 @@ function Lugate:handle_response(n, response)
       ))
       broken = true
     end
-    self:write_log(self.responses[self.req_dat.num[n]], Lugate.RESP_PREF)
 
     -- Store to cache
     if not broken and self.req_dat.key[n] and false ~= self.hooks:cache(response) and not self.cache:get(self.req_dat.key[n]) then
@@ -302,6 +304,9 @@ function Lugate:handle_response(n, response)
       end
     end
   end
+
+  -- Push to log
+  self:write_log(self.responses[self.req_dat.num[n]], Lugate.RESP_PREF)
 
   return true
 end
