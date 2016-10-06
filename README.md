@@ -46,7 +46,7 @@ Lugate is a binding over OpenResty's [ngx\_http\_lua\_module](https://github.com
 The library provides features for request parsing, validating and routing. Lugate acts like a caching proxy over the
 JSON-RPC 2.0 protocol and is meant to be used like an entry point for your application.
 
-![Lugate request processing](https://lh5.googleusercontent.com/coKuz2jei3zO0P2H-6xRs0T4p8K6kqEwWzqdUU9UpTYk9a_CBRB7oKkvkYWpCE6dTZRU34ndiRxe80Y=w1364-h620)
+![Lugate request processing](doc/images/request_upstream_scheme.png)
 
 
 ## API reference
