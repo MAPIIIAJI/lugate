@@ -114,8 +114,8 @@ function Lugate:init(config)
 end
 
 --- Format error message
--- @param[type=string] Message
--- @param[type=string] Comment
+-- @param[type=string] message Log text
+-- @param[type=string] comment Log note
 -- @return[type=string]
 function Lugate:write_log(message, comment)
   if self.debug then
@@ -234,6 +234,7 @@ end
 --- Attach request to the pipeline
 -- @param[type=number] i Requets key
 -- @param[type=table] request Request object
+-- @param[type=table] ngx_requests Table of nginx requests
 -- @return[type=boolean]
 function Lugate:attach_request(i, request, ngx_requests)
   self:write_log(request:get_body(), Lugate.REQ_PREF)
