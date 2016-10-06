@@ -10,6 +10,9 @@
 --- Request factory
 local Request = require "lugate.request"
 
+--- HTTP Statuses
+local HttpStatuses = require 'lugate.http_statuses'
+
 --- The lua gateway class definition
 local Lugate = {
   ERR_PARSE_ERROR = -32700, -- Error code for "Parse error" error
@@ -20,8 +23,10 @@ local Lugate = {
   ERR_SERVER_ERROR = -32000, -- Error code for "Server error" error
   ERR_INVALID_PROXY_CALL = -32098, -- Error code for "Invalid proxy call" error
   ERR_EMPTY_REQUEST = -32097, -- Error code for "Empty request" error
-  VERSION = '0.5.4', -- Current version
+  VERSION = '0.6.0', -- Current version
   DBG_MSG = 'DBG %s>>%s<<', -- Template for error log
+  REQ_PREF = 'REQ', -- Request prefix (used in log message)
+  RESP_PREF = 'RESP', -- Response prefix (used in log message)
 }
 
 Lugate.HTTP_POST = 8
@@ -136,7 +141,8 @@ function Lugate:build_json_error(code, message, data, id)
     [Lugate.ERR_EMPTY_REQUEST] = 'Empty request.',
     [Lugate.ERR_INVALID_PROXY_CALL] = 'Invalid proxy call.',
   }
-  local code = messages[code] and code or Lugate.ERR_SERVER_ERROR
+--  local code = messages[code] and code or Lugate.ERR_SERVER_ERROR
+  local code = (messages[code] or HttpStatuses[code]) and code or Lugate.ERR_SERVER_ERROR
   local message = message or messages[code]
   local data = data and self.json.encode(data) or 'null'
   local id = id or 'null'
@@ -206,59 +212,14 @@ function Lugate:run()
   -- Loop requests
   local ngx_requests = {}
   for i, request in ipairs(self:get_requests()) do
-    self:write_log(request:get_body(), 'REQ')
-
-    if request:is_cachable() and self.cache:get(request:get_key()) then
-      self.responses[i] = self.cache:get(request:get_key())
-    elseif request:is_proxy_call() then
-      local req, err = request:get_ngx_request()
-      if req then
-        table.insert(ngx_requests, req)
-        local req_count = #ngx_requests
-        self.req_dat.num[req_count] = i
-        self.req_dat.key[req_count] = request:get_key()
-        self.req_dat.ttl[req_count] = request:get_ttl()
-        self.req_dat.tags[req_count] = request:get_tags()
-        self.req_dat.ids[req_count] = request:get_id()
-      else
-        self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_SERVER_ERROR, err, request:get_body(), request:get_id()))
-      end
-    elseif not request:is_proxy_call() then
-      self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_INVALID_PROXY_CALL, nil, request:get_body(), request:get_id()))
-    else
-      self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_PARSE_ERROR, nil, request:get_body(), request:get_id()))
-    end
+    self:attach_request(i, request, ngx_requests)
   end
 
   -- Send multi requst and get multi response
   if #ngx_requests > 0 then
-    local responses = { ngx.location.capture_multi(ngx_requests) }
+    local responses = { self.ngx.location.capture_multi(ngx_requests) }
     for n, response in ipairs(responses) do
-      self.responses[self.req_dat.num[n]] = self:clean_response(response)
-
-      -- Quick way to find broken responses
-      local first_char = string.sub(self.responses[self.req_dat.num[n]], 1, 1);
-      local last_char = string.sub(self.responses[self.req_dat.num[n]], -1);
-      local broken = false
-      if ('' == self.responses[self.req_dat.num[n]]) or ('{' ~= first_char and '[' ~= first_char) or ('}' ~= last_char and ']' ~= last_char) then
-          -- Process empty or broken responses
-          self.responses[self.req_dat.num[n]] = self:clean_response(self:build_json_error(
-              Lugate.ERR_SERVER_ERROR, 'Server error. Bad response.', nil, self.req_dat.ids[n]
-          ))
-          broken = true
-      end
-      self:write_log(self.responses[self.req_dat.num[n]], 'RESP')
-
-      -- Store to cache
-      if not broken and self.req_dat.key[n] and false ~= self.hooks:cache(response) and not self.cache:get(self.req_dat.key[n]) then
-        self.cache:set(self.req_dat.key[n], self.responses[self.req_dat.num[n]], self.req_dat.ttl[n])
-        -- Store keys to tag sets
-        if self.req_dat.tags[n] then
-          for _, tag in ipairs(self.req_dat.tags[n]) do
-            self.cache:sadd(tag, self.req_dat.key[n])
-          end
-        end
-      end
+      self:handle_response(n, response)
     end
   end
 
@@ -270,13 +231,91 @@ function Lugate:run()
   return self.responses
 end
 
---- Clean response
+--- Attach request to the pipeline
+-- @param[type=number] i Requets key
+-- @param[type=table] request Request object
+-- @return[type=boolean]
+function Lugate:attach_request(i, request, ngx_requests)
+  self:write_log(request:get_body(), Lugate.REQ_PREF)
+
+  if request:is_cachable() and self.cache:get(request:get_key()) then
+    self.responses[i] = self.cache:get(request:get_key())
+  elseif request:is_proxy_call() then
+    local req, err = request:get_ngx_request()
+    if req then
+      table.insert(ngx_requests, req)
+      local req_count = #ngx_requests
+
+      self.req_dat.num[req_count] = i
+      self.req_dat.key[req_count] = request:get_key()
+      self.req_dat.ttl[req_count] = request:get_ttl()
+      self.req_dat.tags[req_count] = request:get_tags()
+      self.req_dat.ids[req_count] = request:get_id()
+    else
+      self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_SERVER_ERROR, err, request:get_body(), request:get_id()))
+    end
+  elseif not request:is_proxy_call() then
+    self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_INVALID_PROXY_CALL, nil, request:get_body(), request:get_id()))
+  else
+    self.responses[i] = self:clean_response(self:build_json_error(Lugate.ERR_PARSE_ERROR, nil, request:get_body(), request:get_id()))
+  end
+
+  return true
+end
+
+--- Handle every single response
+-- @param[type=number] n Response number
+-- @param[type=table] response Response object
+-- @return[type=boolean]
+function Lugate:handle_response(n, response)
+  -- HTTP code <> 200
+  if self.ngx.HTTP_OK ~= response.status then
+    local response_msg = HttpStatuses[response.status] or 'Unknown error'
+    local data = self.ngx.HTTP_INTERNAL_SERVER_ERROR == response.status and self:clean_response(response.body) or nil
+    self.responses[self.req_dat.num[n]] = self:build_json_error(
+      response.status, response_msg, data, self.req_dat.ids[n]
+    )
+
+  -- HTTP code == 200
+  else
+    self.responses[self.req_dat.num[n]] = self:clean_response(response)
+
+    -- Quick way to find invalid responses
+    local first_char = string.sub(self.responses[self.req_dat.num[n]], 1, 1);
+    local last_char = string.sub(self.responses[self.req_dat.num[n]], -1);
+    local broken = false
+
+    -- JSON check
+    if ('' == self.responses[self.req_dat.num[n]]) or ('{' ~= first_char and '[' ~= first_char) or ('}' ~= last_char and ']' ~= last_char) then
+      -- Process empty or broken responses
+      self.responses[self.req_dat.num[n]] = self:clean_response(self:build_json_error(
+        Lugate.ERR_SERVER_ERROR, 'Server error. Bad JSON-RPC response.', nil, self.req_dat.ids[n]
+      ))
+      broken = true
+    end
+
+    -- Store to cache
+    if not broken and self.req_dat.key[n] and false ~= self.hooks:cache(response) and not self.cache:get(self.req_dat.key[n]) then
+      self.cache:set(self.req_dat.key[n], self.responses[self.req_dat.num[n]], self.req_dat.ttl[n])
+      -- Store keys to tag sets
+      if self.req_dat.tags[n] then
+        for _, tag in ipairs(self.req_dat.tags[n]) do
+          self.cache:sadd(tag, self.req_dat.key[n])
+        end
+      end
+    end
+  end
+
+  -- Push to log
+  self:write_log(self.responses[self.req_dat.num[n]], Lugate.RESP_PREF)
+
+  return true
+end
+
+--- Clean response (trim)
 function Lugate:clean_response(response)
   local response_body = response.body or response
-  response_body = string.gsub(response_body, '%s$', '')
-  response_body = string.gsub(response_body, '^%s', '')
-
-  return response_body
+  return response_body:match'^()%s*$' and '' or response_body:match'^%s*(.*%S)'
 end
 
 --- Print all responses and exit

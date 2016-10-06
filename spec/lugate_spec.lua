@@ -145,3 +145,167 @@ describe("Check request factory", function()
     assert.equal(3, #lugate:get_requests())
   end)
 end)
+
+describe("Check response validation", function ()
+  local ngx = { req = {}, HTTP_OK = 200, HTTP_INTERNAL_SERVER_ERROR = 500 }
+  local lugate = Lugate:new({ ngx = ngx, json = require "rapidjson" })
+  it("Should provide a valid HTTP error status", function()
+    local bad_response = {
+      status = 504,
+      body = [[
+<!DOCTYPE html>
+<html>
+<head>
+<title>Error</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>An error occurred.</h1>
+<p>Sorry, the page you are looking for is currently unavailable.<br/>
+Please try again later.</p>
+<p>If you are the system administrator of this resource then you should check
+the <a href="http://nginx.org/r/error_log">error log</a> for details.</p>
+<p><em>Faithfully yours, nginx.</em></p>
+</body>
+</html>
+      ]],
+    }
+    lugate.req_dat.num[504] = 504
+    lugate.req_dat.ids[504] = 256
+    lugate:handle_response(504, bad_response)
+    assert.equals('{"jsonrpc":"2.0","error":{"code":504,"message":"Gateway Timeout","data":null},"id":256}', lugate.responses[504])
+  end)
+
+  it("Should throw an error on invalid JSON with 200 HTTP status", function()
+    local bad_response = {
+      status = 200,
+      body = [[
+<!DOCTYPE html>
+<html>
+<head>
+<title>Error</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>An error occurred.</h1>
+<p>Sorry, the page you are looking for is currently unavailable.<br/>
+Please try again later.</p>
+<p>If you are the system administrator of this resource then you should check
+the <a href="http://nginx.org/r/error_log">error log</a> for details.</p>
+<p><em>Faithfully yours, nginx.</em></p>
+</body>
+</html>
+      ]],
+    }
+    lugate.req_dat.num[1111] = 1111
+    lugate.req_dat.ids[1111] = 16
+    lugate:handle_response(1111, bad_response)
+    assert.equals('{"jsonrpc":"2.0","error":{"code":-32000,"message":"Server error. Bad JSON-RPC response.","data":null},"id":16}', lugate.responses[1111])
+  end)
+
+
+  it("Should return the page content in data field if HTTP status code is 500", function()
+    local bad_response = {
+      status = 500,
+      body = [[
+        Warning: Uncaught exception "PDOException" with message 'SQLSTATE[HY000] [2002] 'Can't connect to [localhost:3306]
+      ]],
+    }
+    lugate.req_dat.num[500] = 500
+    lugate.req_dat.ids[500] = 16
+    lugate:handle_response(500, bad_response)
+    assert.equals('{"jsonrpc":"2.0","error":{"code":500,"message":"Internal Server Error","data":"Warning: Uncaught exception \\"PDOException\\" with message \'SQLSTATE[HY000] [2002] \'Can\'t connect to [localhost:3306]"},"id":16}', lugate.responses[500])
+  end)
+
+  it("Should not break on broken JSON object when handling 500 error", function()
+    local bad_response = {
+      status = 500,
+      body = [[
+        {"jsonrpc": "2.0", "method"
+      ]],
+    }
+    lugate.req_dat.num[1500] = 1500
+    lugate.req_dat.ids[1500] = 16
+    lugate:handle_response(1500, bad_response)
+    assert.equals('{"jsonrpc":"2.0","error":{"code":500,"message":"Internal Server Error","data":"{\\"jsonrpc\\": \\"2.0\\", \\"method\\""},"id":16}', lugate.responses[1500])
+  end)
+
+  it("Should pass thought valid error messages", function()
+    local valid_error_response = {
+      status = 200,
+      body = '{"jsonrpc": "2.0", "error": {"code": -32600, "message": "Invalid Request"}, "id": null}',
+    }
+    lugate.req_dat.num[40] = 40
+    lugate.req_dat.ids[40] = 32
+    lugate:handle_response(40, valid_error_response)
+    assert.equals(valid_error_response.body, lugate.responses[40])
+  end)
+
+  it("Should pass thought valid result messages", function()
+    local valid_result_response = {
+      status = 200,
+      body = '{"jsonrpc": "2.0", "result": ["hello", 5], "id": "9"}',
+    }
+    lugate.req_dat.num[15] = 15
+    lugate.req_dat.ids[15] = 32
+    lugate:handle_response(15, valid_result_response)
+    assert.equals(valid_result_response.body, lugate.responses[15])
+  end)
+end)
+
+describe("Check request validation", function()
+  local ngx = { req = {}, location = {}, HTTP_OK = 200 }
+  local lugate = Lugate:new({
+    ngx = ngx,
+    json = require "rapidjson",
+    routes = {                              -- 4. Routing rules
+      ['v1%.([^%.]+).*'] = '/v1/%1',        -- 4.1 v1.math.subtract -> /v1/math (for example)
+      ['v2%.([^%.]+).*'] = '/v2/%1',        -- 4.2 v2.math.addition -> /v2/math (for example)
+    }
+  })
+
+  lugate.ngx.location.capture_multi = function()
+    return
+      {
+        status = 200,
+        body = '{"jsonrpc": "2.0", "result": "Valid response", "id": 2}',
+      },
+      {
+        status = 200,
+        body = '{"jsonrpc": "2.0", "result": "Valid response", "id": 3}',
+      }
+  end
+
+  lugate.ngx.req.get_body_data = function()
+    return [[
+[
+    {"jsonrpc": "2.0", "method": "sum", "params": [1,2,4], "id": "1"},
+    {"jsonrpc":"2.0","method":"subtract","params":{"cache":{"ttl":3600,"key":"foobar","tags":["news_list","top7"]},"route":"v2.substract","params":[42,23]},"id":2},
+    {"foo": "boo"},
+    {"jsonrpc":"2.0","method":"subtract","params":{"cache":{"ttl":3600,"key":"foobar","tags":["news_list","top7"]},"route":"v2.substract","params":[42,23]},"id":3},
+    {"jsonrpc":"2.0","method":"subtract","params":{"cache":{"ttl":3600,"key":"foobar","tags":["news_list","top7"]},"route":"v3.substract","params":[42,23]},"id":4}
+]
+    ]]
+  end
+
+  it("Should provide valid responses", function()
+    lugate:run()
+    assert.is_not_false(string.find(lugate.responses[1], 'Invalid proxy call'))
+    assert.is_not_false(string.find(lugate.responses[5], 'Failed to bind the route'))
+    assert.equals('{"jsonrpc": "2.0", "result": "Valid response", "id": 2}', lugate.responses[2])
+    assert.equals('{"jsonrpc":"2.0","error":{"code":-32098,"message":"Invalid proxy call.","data":"{}"},"id":null}', lugate.responses[3])
+    assert.equals('{"jsonrpc": "2.0", "result": "Valid response", "id": 3}', lugate.responses[4])
+  end)
+end)

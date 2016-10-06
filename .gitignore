@@ -4,3 +4,4 @@ example/nginx/logs
 example/nginx/*_temp
 luacov.stats.out
 *.src.rock
+lugate.iml
