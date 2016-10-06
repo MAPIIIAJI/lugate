@@ -12,10 +12,10 @@ Lugate is a library for building JSON-RPC 2.0 Gateway API just inside of your NG
 [Installation](#installation)  
 [Usage](#usage)  
 [Lugate Proxy Call](#lugate-proxy-call)  
-[Middlewares](#middlewares)
+[Middlewares](#middlewares)  
 [Testing](#testing)  
-[Running example](#running-example)
-[Change Log](#change-log)
+[Running The Example](#running-example)  
+[Change Log](#change-log)  
 
 
 ## Synopsis
