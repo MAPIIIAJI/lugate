@@ -6,16 +6,26 @@ Lugate is a library for building JSON-RPC 2.0 Gateway API just inside of your NG
 [![GitHub version](https://badge.fury.io/gh/zinovyev%2Flugate.svg)](https://badge.fury.io/gh/zinovyev%2Flugate)
 
 ## Table of Contents  
-[Synopsis](#synopsis)  
-[About](#about)  
-[API Reference](##api-reference)  
-[Installation](#installation)  
-[Usage](#usage)  
-[Lugate Proxy Call](#lugate-proxy-call)  
-[Middlewares](#middlewares)  
-[Testing](#testing)  
-[Running The Example](#running-example)  
-[Change Log](#change-log)  
+[Synopsis](#synopsis)
+
+[About](#about)
+
+[API Reference](##api-reference)
+
+[Installation](#installation)
+
+[Usage](#usage)
+
+[Lugate Proxy Call](#lugate-proxy-call)
+
+[Middlewares](#middlewares)
+
+[Testing](#testing)
+
+[Running The Example](#running-the-example)
+
+[Change Log](#change-log)
+
 
 
 ## Synopsis
@@ -138,14 +148,19 @@ The request routing plan:
 
 ### Route
   The routing destination. The value is processed by the lua [gsub](http://www.lua.org/pil/20.1.html) function.
+  
 ### Params
   The original params values.
+  
 ### Ttl
   The time-to-life value is used to set cache expiration time. If ttl is false, no cache is set.
+  
 ### Key
   The cache key is calculated by client. This approach gives more flexibility for debugging and development goals.
+  
 ### Tags
   The cache tags. Cache Keys Stored in special Tag sets. Use it for cache invalidation.
+  
 
 ## Middlewares
 You can use the `pre` and `post` hooks to paste additional logic to the `run` method:
@@ -189,18 +204,26 @@ Add this line to your local `/etc/hosts` file:
 192.168.50.47 gateway.lugate.loc service01.lugate.loc service02.lugate.loc service03.lugate.loc
 ```
 
+
 ## Change Log
+
+
 ### 6.0.0
-* HTTP errors handling (#issue-178289642)
+* HTTP errors handling ([#4](zinovyev/lugate/issues/4))
 * Better request/response factories testing
+
 ### 0.5.4
 * Invalid JSON detection
+
 ### 0.5.3
 * Debug log and version header features
+
 ### 0.5.2
 * Prevent invalid JSON on empty responses in batch
+
 ### 0.5.1
 * Support for cache tagging
+
 ### 0.5.0
 * Hooks feature added ([middlewares](#middlewares))
 * Redis cache support
