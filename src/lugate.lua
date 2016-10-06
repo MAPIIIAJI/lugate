@@ -271,8 +271,9 @@ function Lugate:handle_response(n, response)
   -- HTTP code <> 200
   if self.ngx.HTTP_OK ~= response.status then
     local response_msg = HttpStatuses[response.status] or 'Unknown error'
+    local data = self.ngx.HTTP_INTERNAL_SERVER_ERROR == response.status and self:clean_response(response.body) or nil
     self.responses[self.req_dat.num[n]] = self:build_json_error(
-      response.status, response_msg, nil, self.req_dat.ids[n]
+      response.status, response_msg, data, self.req_dat.ids[n]
     )
 
   -- HTTP code == 200
@@ -311,13 +312,10 @@ function Lugate:handle_response(n, response)
   return true
 end
 
---- Clean response
+--- Clean response (trim)
 function Lugate:clean_response(response)
   local response_body = response.body or response
-  response_body = string.gsub(response_body, '%s$', '')
-  response_body = string.gsub(response_body, '^%s', '')
-
-  return response_body
+  return response_body:match'^()%s*$' and '' or response_body:match'^%s*(.*%S)'
 end
 
 --- Print all responses and exit

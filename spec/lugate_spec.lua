@@ -147,7 +147,7 @@ describe("Check request factory", function()
 end)
 
 describe("Check response validation", function ()
-  local ngx = { req = {}, HTTP_OK = 200 }
+  local ngx = { req = {}, HTTP_OK = 200, HTTP_INTERNAL_SERVER_ERROR = 500 }
   local lugate = Lugate:new({ ngx = ngx, json = require "rapidjson" })
   it("Should provide a valid HTTP error status", function()
     local bad_response = {
@@ -176,10 +176,10 @@ the <a href="http://nginx.org/r/error_log">error log</a> for details.</p>
 </html>
       ]],
     }
-    lugate.req_dat.num[1256] = 1256
-    lugate.req_dat.ids[1256] = 256
-    lugate:handle_response(1256, bad_response)
-    assert.equals('{"jsonrpc":"2.0","error":{"code":504,"message":"Gateway Timeout","data":null},"id":256}', lugate.responses[1256])
+    lugate.req_dat.num[504] = 504
+    lugate.req_dat.ids[504] = 256
+    lugate:handle_response(504, bad_response)
+    assert.equals('{"jsonrpc":"2.0","error":{"code":504,"message":"Gateway Timeout","data":null},"id":256}', lugate.responses[504])
   end)
 
   it("Should throw an error on invalid JSON with 200 HTTP status", function()
@@ -213,6 +213,33 @@ the <a href="http://nginx.org/r/error_log">error log</a> for details.</p>
     lugate.req_dat.ids[1111] = 16
     lugate:handle_response(1111, bad_response)
     assert.equals('{"jsonrpc":"2.0","error":{"code":-32000,"message":"Server error. Bad JSON-RPC response.","data":null},"id":16}', lugate.responses[1111])
+  end)
+
+
+  it("Should return the page content in data field if HTTP status code is 500", function()
+    local bad_response = {
+      status = 500,
+      body = [[
+        Warning: Uncaught exception "PDOException" with message 'SQLSTATE[HY000] [2002] 'Can't connect to [localhost:3306]
+      ]],
+    }
+    lugate.req_dat.num[500] = 500
+    lugate.req_dat.ids[500] = 16
+    lugate:handle_response(500, bad_response)
+    assert.equals('{"jsonrpc":"2.0","error":{"code":500,"message":"Internal Server Error","data":"Warning: Uncaught exception \\"PDOException\\" with message \'SQLSTATE[HY000] [2002] \'Can\'t connect to [localhost:3306]"},"id":16}', lugate.responses[500])
+  end)
+
+  it("Should not break on broken JSON object when handling 500 error", function()
+    local bad_response = {
+      status = 500,
+      body = [[
+        {"jsonrpc": "2.0", "method"
+      ]],
+    }
+    lugate.req_dat.num[1500] = 1500
+    lugate.req_dat.ids[1500] = 16
+    lugate:handle_response(1500, bad_response)
+    assert.equals('{"jsonrpc":"2.0","error":{"code":500,"message":"Internal Server Error","data":"{\\"jsonrpc\\": \\"2.0\\", \\"method\\""},"id":16}', lugate.responses[1500])
   end)
 
   it("Should pass thought valid error messages", function()
