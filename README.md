@@ -209,7 +209,7 @@ Add this line to your local `/etc/hosts` file:
 
 
 ### 6.0.0
-* HTTP errors handling ([#4](/zinovyev/lugate/issues/4))
+* HTTP errors handling ([#4](https://github.com/zinovyev/lugate/issues/4))
 * Better request/response factories testing
 
 ### 0.5.4
