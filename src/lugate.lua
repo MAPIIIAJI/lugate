@@ -290,7 +290,7 @@ function Lugate:handle_response(n, response)
     if ('' == self.responses[self.req_dat.num[n]]) or ('{' ~= first_char and '[' ~= first_char) or ('}' ~= last_char and ']' ~= last_char) then
       -- Process empty or broken responses
       self.responses[self.req_dat.num[n]] = self:clean_response(self:build_json_error(
-        Lugate.ERR_SERVER_ERROR, 'Server error. Bad JSON-RPC response.', nil, self.req_dat.ids[n]
+        Lugate.ERR_SERVER_ERROR, 'Server error. Bad JSON-RPC response.', self.responses[self.req_dat.num[n]], self.req_dat.ids[n]
       ))
       broken = true
     end
