@@ -217,7 +217,7 @@ function Lugate:run()
 
   -- Send multi requst and get multi response
   if #ngx_requests > 0 then
-    local responses = { self.ngx.location.capture_multi(ngx_requests) }
+    local responses = { self:location_capture_multi(ngx_requests) }
     for n, response in ipairs(responses) do
       self:handle_response(n, response)
     end
@@ -262,6 +262,39 @@ function Lugate:attach_request(i, request, ngx_requests)
   end
 
   return true
+end
+
+--- Capture location async
+-- @param[type=table] requests Table of requests
+-- @return[type=table] Table of resposes
+function Lugate:location_capture_multi(requests)
+  -- Fetch request
+  local function fetch(num, request)
+    local res = self.ngx.location.capture(unpack(request))
+    res.time = 0
+    res.num = num
+
+    return res
+  end
+
+  -- Create threads
+  local threads = {}
+  for num, request in ipairs(requests) do
+    threads[num] = self.ngx.thread.spawn(fetch, num, request)
+  end
+
+  -- Wait for all threads to end
+  local results = {}
+  for i = 1, #threads do
+    local ok, res = self.ngx.thread.wait(threads[i])
+    if not ok then
+      results[res.num] = self:clean_response(self:build_json_error(Lugate.ERR_INVALID_PROXY_CALL, 'Failed to run request.', res, self.req_dat.ids[res.num]))
+    else
+      results[res.num] = res
+    end
+  end
+
+  return unpack(results)
 end
 
 --- Handle every single response
