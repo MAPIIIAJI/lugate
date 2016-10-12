@@ -23,8 +23,14 @@ local Lugate = {
   ERR_SERVER_ERROR = -32000, -- Error code for "Server error" error
   ERR_INVALID_PROXY_CALL = -32098, -- Error code for "Invalid proxy call" error
   ERR_EMPTY_REQUEST = -32097, -- Error code for "Empty request" error
-  VERSION = '0.6.0', -- Current version
-  DBG_MSG = 'DBG %s>>%s<<', -- Template for error log
+  VERSION = '0.6.1', -- Current version
+  DBG_SEPARATOR = ' |::| ', -- Lugate debug log delimeter
+  DBG_MSG = "\nLUGATE-DBG%s%s%s%s%s%s%s%s%s%s%sLUGATE-DBG-END\n", -- Lugate debug log message pattern: Event name, Event id, Parent id, Time, Message
+  DBG_EVENTS = {
+    BATCH_RECIEVED = 'BATCH',
+    SUBREQUEST_REQ = 'SUBREQUEST_REQ',
+    SUBREQUEST_RESP = 'SUBREQUEST_RESP',
+  },
   REQ_PREF = 'REQ', -- Request prefix (used in log message)
   RESP_PREF = 'RESP', -- Response prefix (used in log message)
 }
@@ -111,17 +117,6 @@ function Lugate:init(config)
   end
 
   return lugate
-end
-
---- Format error message
--- @param[type=string] message Log text
--- @param[type=string] comment Log note
--- @return[type=string]
-function Lugate:write_log(message, comment)
-  if self.debug then
-      comment = comment and '(' .. comment .. ')' or ''
-      self.ngx.log(self.ngx.ERR, string.format(Lugate.DBG_MSG, comment, message))
-  end
 end
 
 --- Get a proper formated json error
@@ -237,8 +232,6 @@ end
 -- @param[type=table] ngx_requests Table of nginx requests
 -- @return[type=boolean]
 function Lugate:attach_request(i, request, ngx_requests)
-  self:write_log(request:get_body(), Lugate.REQ_PREF)
-
   if request:is_cachable() and self.cache:get(request:get_key()) then
     self.responses[i] = self.cache:get(request:get_key())
   elseif request:is_proxy_call() then
@@ -268,10 +261,19 @@ end
 -- @param[type=table] requests Table of requests
 -- @return[type=table] Table of resposes
 function Lugate:location_capture_multi(requests)
+
+  -- Timer: debug start
+  local batch_id = self.ngx.now()
+  local timers = {subrequests = {}, batch_started_at = batch_id}
+  batch_id = batch_id * 1000
+
   -- Fetch request
   local function fetch(num, request)
+    -- Timer: subrequest start
+    local start_at = self.ngx.now()
+
     local res = self.ngx.location.capture(unpack(request))
-    res.time = 0
+    res.time = self.ngx.now() - start_at
     res.num = num
 
     return res
@@ -289,8 +291,19 @@ function Lugate:location_capture_multi(requests)
     local ok, res = self.ngx.thread.wait(threads[i])
     if not ok then
       results[res.num] = self:clean_response(self:build_json_error(Lugate.ERR_INVALID_PROXY_CALL, 'Failed to run request.', res, self.req_dat.ids[res.num]))
+      timers.subrequests[res.num] = 0
     else
       results[res.num] = res
+      timers.subrequests[res.num] = res.time
+    end
+  end
+
+  -- Timer: debug end
+  if self.debug then
+    self:write_log(Lugate.DBG_EVENTS.BATCH_RECIEVED, batch_id, self.ngx.now() - timers.batch_started_at, self:get_body(), 0)
+    for num, timer in ipairs(timers.subrequests) do
+      self:write_log(Lugate.DBG_EVENTS.SUBREQUEST_REQ, num, 0, (requests[num][1] or '') .. ':' .. (requests[num][2]['body'] or ''), batch_id)
+      self:write_log(Lugate.DBG_EVENTS.SUBREQUEST_RESP, num, timer, results[num], batch_id)
     end
   end
 
@@ -340,9 +353,6 @@ function Lugate:handle_response(n, response)
     end
   end
 
-  -- Push to log
-  self:write_log(self.responses[self.req_dat.num[n]], Lugate.RESP_PREF)
-
   return true
 end
 
@@ -361,6 +371,37 @@ function Lugate:print_responses()
   end
 
   ngx.exit(ngx.HTTP_OK)
+end
+
+--- Format error message
+-- Event name, Event id, Time, Message
+-- @param[type=string] message Log text
+-- @param[type=string] pref Log prefix (for better grepping)
+-- @return[type=string]
+function Lugate:write_log(event, event_id, time, message, parent_id)
+  if self.debug then
+    if event and event_id and time and message then
+      parent_id = parent_id or 0
+      message = self:clean_response(message)
+      self.ngx.log(
+        self.ngx.ERR,
+        string.format(
+          Lugate.DBG_MSG,
+          Lugate.DBG_SEPARATOR,
+          event,
+          Lugate.DBG_SEPARATOR,
+          event_id,
+          Lugate.DBG_SEPARATOR,
+          parent_id,
+          Lugate.DBG_SEPARATOR,
+          time,
+          Lugate.DBG_SEPARATOR,
+          message,
+          Lugate.DBG_SEPARATOR
+        )
+      )
+    end
+  end
 end
 
 return Lugate
