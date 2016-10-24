@@ -177,10 +177,14 @@ function Lugate:get_data()
 end
 
 --- Check if request is a batch
--- @param[type=table] data Decoded request body
 -- @return[type=boolean]
-function Lugate:is_batch(data)
-  return data and data[1] and ('table' == type(data[1])) and true or false
+function Lugate:is_batch()
+  if not self.is_batch then
+    local data = self:get_data()
+    self.is_batch =  data and data[1] and ('table' == type(data[1])) and true or false
+  end
+
+  return self.is_batch
 end
 
 --- Get request collection
@@ -189,7 +193,7 @@ function Lugate:get_requests()
   if not self.requests then
     self.requests = {}
     local data = self:get_data()
-    if self:is_batch(data) then
+    if self:is_batch() then
       for _, rdata in ipairs(data) do
         table.insert(self.requests, Request:new(rdata, self))
       end
@@ -321,7 +325,7 @@ end
 
 --- Print all responses and exit
 function Lugate:print_responses()
-  if 1 == #self.responses then
+  if false == self:is_batch() then
     ngx.say(self.responses[1])
   else
     ngx.print('[' .. table.concat(self.responses, ",") .. ']')
