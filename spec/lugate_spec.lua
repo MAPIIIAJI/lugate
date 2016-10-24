@@ -118,12 +118,40 @@ describe("Check body and data analysis", function()
     assert.are_same({ foo = "bar" }, lugate:get_data())
   end)
 
-  it("Method is_batch() should return true if batch is provided and false otherwise", function()
-    local lugate = Lugate:new({ ngx = {}, json = {} })
-    assert.is_true(lugate:is_batch({ { foo = "bar" } }))
-    assert.is_false(lugate:is_batch({ foo = "bar" }))
-    assert.is_false(lugate:is_batch(nill))
-    assert.is_false(lugate:is_batch("foo"))
+  it("Method is_batch() should return true if valid batch is provided", function()
+    local ngx1 = { req = {},  }
+    ngx1.req.get_body_data = function()
+      return '[{ "foo": "bar" }]'
+    end
+    local lugate1 = Lugate:new({ ngx = ngx1, json = require "rapidjson" })
+    assert.is_true(lugate1:is_batch())
+  end)
+
+  it("Method is_batch() false on single request", function()
+    local ngx2 = { req = {} }
+    ngx2.req.get_body_data = function()
+      return '{ "foo": "bar" }'
+    end
+    local lugate2 = Lugate:new({ ngx = ngx2, json = require "rapidjson" })
+    assert.is_false(lugate2:is_batch())
+  end)
+
+  it("Method is_batch() should return false on nil", function()
+    local ngx3 = { req = {} }
+    ngx3.req.get_body_data = function()
+      return nil
+    end
+    local lugate3 = Lugate:new({ ngx = ngx3, json = require "rapidjson" })
+    assert.is_false(lugate3:is_batch())
+  end)
+
+  it("Method is_batch() should return false on string", function()
+    local ngx4 = { req = {} }
+    ngx4.req.get_body_data = function()
+      return "foo"
+    end
+    local lugate4 = Lugate:new({ ngx = ngx4, json = require "rapidjson" })
+    assert.is_false(lugate4:is_batch())
   end)
 end)
 
@@ -307,5 +335,34 @@ describe("Check request validation", function()
     assert.equals('{"jsonrpc": "2.0", "result": "Valid response", "id": 2}', lugate.responses[2])
     assert.equals('{"jsonrpc":"2.0","error":{"code":-32098,"message":"Invalid proxy call.","data":"{}"},"id":null}', lugate.responses[3])
     assert.equals('{"jsonrpc": "2.0", "result": "Valid response", "id": 3}', lugate.responses[4])
+  end)
+end)
+
+describe("Check one-request batch processing", function()
+  local ngx = { req = {}, location = {}, HTTP_OK = 200 }
+  local lugate = Lugate:new({
+    ngx = ngx,
+    json = require "rapidjson",
+    routes = {                              -- 4. Routing rules
+      ['v1%.([^%.]+).*'] = '/v1/%1',        -- 4.1 v1.math.subtract -> /v1/math (for example)
+      ['v2%.([^%.]+).*'] = '/v2/%1',        -- 4.2 v2.math.addition -> /v2/math (for example)
+    }
+  })
+
+  lugate.ngx.location.capture_multi = function()
+    return
+    {
+      status = 200,
+      body = '{"jsonrpc": "2.0", "result": "Valid response", "id": 1}',
+    }
+  end
+
+  lugate.ngx.req.get_body_data = function()
+    return '[{"jsonrpc":"2.0","method":"subtract","params":{"cache":{"ttl":3600,"key":"foobar","tags":["news_list","top7"]},"route":"v2.substract","params":[42,23]},"id":1}]'
+  end
+
+  it("Should provide a valid batch response with single item inside", function()
+    lugate:run()
+    assert.equals('[{"jsonrpc": "2.0", "result": "Valid response", "id": 1}]', lugate:get_result())
   end)
 end)

@@ -179,12 +179,12 @@ end
 --- Check if request is a batch
 -- @return[type=boolean]
 function Lugate:is_batch()
-  if not self.is_batch then
+  if not self.batch then
     local data = self:get_data()
-    self.is_batch =  data and data[1] and ('table' == type(data[1])) and true or false
+    self.batch =  data and data[1] and ('table' == type(data[1])) and true or false
   end
 
-  return self.is_batch
+  return self.batch
 end
 
 --- Get request collection
@@ -323,13 +323,19 @@ function Lugate:clean_response(response)
   return response_body:match'^()%s*$' and '' or response_body:match'^%s*(.*%S)'
 end
 
+--- Get responses as a string
+-- @return[type=string]
+function Lugate:get_result()
+  if false == self:is_batch() then
+    return self.responses[1]
+  end
+
+  return '[' .. table.concat(self.responses, ",") .. ']'
+end
+
 --- Print all responses and exit
 function Lugate:print_responses()
-  if false == self:is_batch() then
-    ngx.say(self.responses[1])
-  else
-    ngx.print('[' .. table.concat(self.responses, ",") .. ']')
-  end
+  ngx.say(self:get_result())
 
   ngx.exit(ngx.HTTP_OK)
 end
